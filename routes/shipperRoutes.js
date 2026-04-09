@@ -14,11 +14,15 @@ router.get('/open-orders', async (req, res) => {
                 shipper_locations.name AS origin ,
                 shipper_locations.address AS origin_address,
                 shipper_locations.city AS origin_city,
-                shipper_locations.state AS origin_state, 
+                shipper_locations.state AS origin_state,
+                shipper_locations.latitude AS origin_lat,
+                shipper_locations.longitude AS origin_long, 
                 customer_locations.name AS destination ,
                 customer_locations.address AS destination_address,
                 customer_locations.city AS destination_city,
-                customer_locations.state AS destination_state, 
+                customer_locations.state AS destination_state,
+                customer_locations.latitude AS destination_lat,
+                customer_locations.longitude AS destination_long, 
                 SUM(order_line_items.total_weight_lbs) AS weight
             
             FROM orders
@@ -103,7 +107,7 @@ router.get('/get-equipment-types', async (req, res) => {
 
 router.post('/create-shipment', async (req, res) => {
     try {
-        const { originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders } = req.body
+        const { originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, distance, orders } = req.body
 
         await pool.query('BEGIN')
 
@@ -113,11 +117,11 @@ router.post('/create-shipment', async (req, res) => {
 
         let newShipment = await pool.query(`
             INSERT INTO shipments
-            (shipment_number , origin_id , destination_id , carrier_id , equipment_type_id , status , total_weight , requested_pickup_date , requested_delivery_date , planned_by_user_id) 
+            (shipment_number , origin_id , destination_id , carrier_id , equipment_type_id , status , total_weight , requested_pickup_date , requested_delivery_date , planned_by_user_id , distance) 
             
-            VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8 , $9 , $10)
+            VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8 , $9 , $10 , $11)
             
-            RETURNING *` , [shipmentNumber, originId, destinationId, carrier, equipmentType, status, totalWeight,  pickDate, dropDate, userId]);
+            RETURNING *` , [shipmentNumber, originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, distance]);
 
 
         await pool.query(`
@@ -141,21 +145,54 @@ router.post('/create-shipment', async (req, res) => {
     }
 })
 
-router.get('/get-undelivered' , async (req , res)=>{
-    try{
+router.get('/get-undelivered', async (req, res) => {
+    try {
         const countUndelivered = await pool.query(`
             SELECT COUNT(*) FROM shipments
             WHERE status <> 'delivered'`)
 
-            if(countUndelivered.rows.length === 0){
-                res.status(400).json({error: 'Could not find undelivered shipments.'})
-            }
+        if (countUndelivered.rows.length === 0) {
+            res.status(400).json({ error: 'Could not find undelivered shipments.' })
+        }
 
-           res.status(200).json({countUndelivered: countUndelivered.rows[0]}) 
+        res.status(200).json({ countUndelivered: countUndelivered.rows[0] })
     } catch (err) {
         console.error('Query error:', err.message)
         res.status(500).json({ error: err.message })
     }
 })
+
+router.post('/get-distance', async (req, res) => {
+    try {
+        const { originLat, originLong, destLat, destLong } = req.body
+
+        const response = await fetch(`${process.env.ROUTE_MATRIX_URL}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                mode: 'drive',
+                units: 'imperial',
+                sources: [{ "location": [originLong, originLat] }],
+                targets: [{ "location": [destLong, destLat] }]
+            })
+        })
+
+        const result = await response.json();
+
+        console.log(result)
+
+        if (!result.sources_to_targets) {
+            return res.status(400).json({message: 'Error retriving distance'})
+        }
+
+        res.status(200).json({distance: result.sources_to_targets[0][0].distance})
+    } catch (err) {
+        console.error('Query error:', err.message)
+        res.status(500).json({ error: err.message })
+    }
+})
+
 
 module.exports = router

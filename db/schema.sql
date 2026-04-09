@@ -61,6 +61,8 @@ CREATE TABLE customer_locations (
     state VARCHAR(255) NOT NULL,
     zip_code VARCHAR(10) NOT NULL,
     country VARCHAR(255) NOT NULL,
+    latitude DECIMAL(10, 6) NOT NULL,
+    longitude DECIMAL(10, 6) NOT NULL,
     CONSTRAINT fk_customer_id FOREIGN KEY (customer_id) REFERENCES customers(id)
 );
 
@@ -74,6 +76,8 @@ CREATE TABLE shipper_locations (
     state VARCHAR(255) NOT NULL,
     zip_code VARCHAR(10) NOT NULL,
     country VARCHAR(255) NOT NULL,
+    latitude DECIMAL(10, 6) NOT NULL,
+    longitude DECIMAL(10, 6) NOT NULL,
     CONSTRAINT fk_company_id FOREIGN KEY (company_id) REFERENCES companies(id)
 );
 
