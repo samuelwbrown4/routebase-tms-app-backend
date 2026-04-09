@@ -141,4 +141,21 @@ router.post('/create-shipment', async (req, res) => {
     }
 })
 
+router.get('/get-undelivered' , async (req , res)=>{
+    try{
+        const countUndelivered = await pool.query(`
+            SELECT COUNT(*) FROM shipments
+            WHERE status <> 'delivered'`)
+
+            if(countUndelivered.rows.length === 0){
+                res.status(400).json({error: 'Could not find undelivered shipments.'})
+            }
+
+           res.status(200).json({countUndelivered: countUndelivered.rows[0]}) 
+    } catch (err) {
+        console.error('Query error:', err.message)
+        res.status(500).json({ error: err.message })
+    }
+})
+
 module.exports = router

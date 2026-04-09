@@ -90,6 +90,18 @@ CREATE TABLE shipper_users (
     CONSTRAINT fk_location_id FOREIGN KEY (location_id) REFERENCES shipper_locations(id)
 );
 
+CREATE TABLE carrier_users (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    carrier_id UUID NOT NULL,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    phone_number VARCHAR(20) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role role NOT NULL,
+    CONSTRAINT fk_carrier_id FOREIGN KEY (carrier_id) REFERENCES carriers(id)
+);
+
 CREATE TABLE products (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     company_id UUID NOT NULL,
@@ -165,7 +177,7 @@ CREATE TABLE shipment_events (
     notes TEXT,
     user_id UUID,
     CONSTRAINT fk_shipment_id FOREIGN KEY (shipment_id) REFERENCES shipments(id),
-    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES shipper_users(id)
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES carrier_users(id)
 );
 
 CREATE TABLE shipment_orders (
