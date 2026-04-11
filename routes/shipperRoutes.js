@@ -194,5 +194,94 @@ router.post('/get-distance', async (req, res) => {
     }
 })
 
+router.get('/users/:id/contracts' , async (req , res)=>{
+    try{
+        const {id} = req.params;
 
+        console.log(id)
+
+        let response =  await pool.query(`
+            SELECT
+            contracts.id,
+            contracts.contract_status,
+            contracts.carrier_id AS carrierId,
+            carriers.name AS carrier,
+            json_agg(
+                json_build_object(
+                    'rateId' , rates.id,
+                    'min_distance' , rates.min_distance,
+                    'max_distance' , rates.max_distance,
+                    'flat_rate' , rates.flat_rate,
+                    'per_mile_rate' , rates.per_mile_rate,
+                    'fuel_surcharge_percentage' , rates.fuel_surcharge_percentage
+                )
+                    ORDER BY rates.min_distance
+            ) AS rates
+            
+
+            FROM contracts
+
+            JOIN carriers ON contracts.carrier_id = carriers.id
+            JOIN rates ON contracts.package_id = rates.package_id
+
+            WHERE contracts.company_id IN(SELECT shipper_locations.company_id 
+                                            FROM shipper_users 
+                                            JOIN shipper_locations ON shipper_locations.id = shipper_users.location_id
+                                            WHERE shipper_users.id = $1)
+
+            GROUP BY contracts.id , contracts.carrier_id , carriers.name
+
+        ` , [id]);
+
+        if(response.rows.length === 0){
+            return res.status(400).json({message: 'No contracts found'})
+        }
+
+        console.log(response.rows)
+
+        res.status(200).json({contracts: response.rows})
+
+
+    }catch(err){
+        console.error('Query error:', err.message)
+        res.status(500).json({ error: err.message })
+    }
+})
+
+router.post('/users/:id/rates' , async (req , res)=>{
+    try{
+        const {id} = req.params;
+        const {distance} = req.body;
+
+        let response = await pool.query(`
+            SELECT 
+               contracts.id AS contract,
+               contracts.carrier_id AS carrierId,
+               carriers.name AS carrier,
+               rates.id AS rateId,
+               rates.flat_rate,
+               rates.per_mile_rate,
+               rates.fuel_surcharge_percentage,
+               rates.min_distance,
+               rates.max_distance
+
+            FROM
+
+                rates
+
+            JOIN contracts ON contracts.package_id = rates.package_id
+            JOIN carriers ON carriers.id = contracts.carrier_id
+
+            WHERE $1 > rates.min_distance AND ($1 < rates.max_distance OR rates.max_distance IS NULL) AND contracts.contract_status = 'active' AND contracts.company_id IN(SELECT shipper_locations.company_id FROM shipper_users JOIN shipper_locations ON shipper_users.location_id = shipper_locations.id WHERE shipper_users.id = $2)
+            ` , [distance , id])
+
+        if(response.rows.length === 0){
+            return res.status(400).json({message: 'No rates found.'})
+        }
+        res.status(200).json({rates: response.rows})
+    }catch(err){
+        console.error('Query error:', err.message)
+        res.status(500).json({ error: err.message })
+    }
+})
 module.exports = router

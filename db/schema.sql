@@ -4,6 +4,7 @@ CREATE TYPE role AS ENUM ('admin', 'user');
 CREATE TYPE order_status AS ENUM ('unplanned', 'planned', 'in_transit', 'delivered', 'cancelled');
 CREATE TYPE shipment_status AS ENUM ('built', 'planned', 'in_transit', 'delivered', 'cancelled');
 CREATE TYPE shipment_events_type AS ENUM ('picked_up', 'in_transit', 'delivered' , 'comment');
+CREATE TYPE contract_status AS ENUM ('pending' ,'active', 'expired' , 'rejected', 'terminated');
 
 CREATE TABLE companies (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -190,6 +191,37 @@ CREATE TABLE shipment_orders (
     PRIMARY KEY (shipment_id, order_id),
     CONSTRAINT fk_shipment_id FOREIGN KEY (shipment_id) REFERENCES shipments(id),
     CONSTRAINT fk_order_id FOREIGN KEY (order_id) REFERENCES orders(id)
+);
+
+CREATE TABLE rate_packages (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    carrier_id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    CONSTRAINT fk_carrier_id FOREIGN KEY (carrier_id) REFERENCES carriers(id)
+);
+
+CREATE TABLE rates (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    package_id UUID NOT NULL,
+    min_distance DECIMAL(10, 2) NOT NULL,
+    max_distance DECIMAL(10, 2),
+    flat_rate DECIMAL(10, 2) NOT NULL,
+    per_mile_rate DECIMAL(10, 2) NOT NULL,
+    fuel_surcharge_percentage DECIMAL(5, 2) NOT NULL,
+    CONSTRAINT fk_package_id FOREIGN KEY (package_id) REFERENCES rate_packages(id)
+);
+
+CREATE TABLE contracts (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    company_id UUID NOT NULL,
+    carrier_id UUID NOT NULL,
+    package_id UUID NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    contract_status contract_status DEFAULT 'pending' NOT NULL,
+    CONSTRAINT fk_company_id FOREIGN KEY (company_id) REFERENCES companies(id),
+    CONSTRAINT fk_carrier_id FOREIGN KEY (carrier_id) REFERENCES carriers(id),
+    CONSTRAINT fk_package_id FOREIGN KEY (package_id) REFERENCES rate_packages(id)
 );
 
 

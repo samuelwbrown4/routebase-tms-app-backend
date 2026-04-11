@@ -96,4 +96,43 @@ router.post('/shipment-update/:shipmentId' , async (req , res)=> {
     }
 })
 
+router.get('/user/:id/pkgs' , async (req , res)=>{
+    try{
+        const {id} = req.params;
+
+        const response = await pool.query(`
+            SELECT
+               rate_packages.id AS pkgId,
+               rate_packages.name AS pkgName,
+               json_agg(
+                    json_build_object(
+                        'rateId' , rates.id,
+                        'min_distance' , rates.min_distance,
+                        'max_distance' , rates.max_distance,
+                        'flat_rate' , rates.flat_rate,
+                        'per_mile_rate' , rates.per_mile_rate,
+                        'fuel_surcharge_percentage' , rates.fuel_surcharge_percentage
+                    )
+                        ORDER BY min_distance
+               ) AS rates
+
+            FROM rate_packages
+
+            JOIN rates ON rates.package_id = rate_packages.id
+
+            WHERE rate_packages.carrier_id IN(SELECT carrier_users.carrier_id FROM carrier_users WHERE carrier_users.id = $1)
+
+            GROUP BY rate_packages.id , rate_packages.name
+            ` , [id])
+
+            if(response.rows.length === 0){
+                res.status(400).json({message: 'No rate packages found.'})
+            }
+
+            res.status(200).json({packages: response.rows})
+    }catch(err){
+        res.status(500).json({error: `Error: ${err.message}`})
+    }
+})
+
 module.exports = router;
