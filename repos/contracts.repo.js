@@ -1,6 +1,28 @@
 const pool = require('../db/pool.js')
 
-const getContractsByShipperUser = async (id) => {
+const contractExists = async (shipperId , carrierId) => {
+    const contract = await pool.query(`
+        SELECT id
+        FROM contracts
+        WHERE contracts.company_id = $1 AND contracts.carrier_id = $2 AND contracts.contract_status = 'active'
+        ` , [shipperId , carrierId])
+
+    return contract.rows[0]
+}
+
+const createContract = async (shipperId , carrierId , packageId , contractStart , contractEnd) => {
+    let newContract = await pool.query(`
+        INSERT INTO contracts (company_id , carrier_id , package_id , start_date , end_date) 
+        VALUES ($1 , $2 , $3 , $4 , $5)
+        RETURNING *
+        ` , [shipperId , carrierId , packageId , contractStart , contractEnd]);
+
+    return newContract.rows
+}
+
+
+
+const getContractsByShipperUser = async (id , status) => {
     let response =  await pool.query(`
             SELECT
             contracts.id,
@@ -25,17 +47,17 @@ const getContractsByShipperUser = async (id) => {
             JOIN carriers ON contracts.carrier_id = carriers.id
             JOIN rates ON contracts.package_id = rates.package_id
 
-            WHERE contracts.company_id IN(SELECT shipper_locations.company_id 
+            WHERE contracts.contract_status = $1 AND contracts.company_id IN(SELECT shipper_locations.company_id 
                                             FROM shipper_users 
                                             JOIN shipper_locations ON shipper_locations.id = shipper_users.location_id
-                                            WHERE shipper_users.id = $1)
+                                            WHERE shipper_users.id = $2)
 
             GROUP BY contracts.id , contracts.carrier_id , carriers.name
 
-        ` , [id]);
+        ` , [status, id]);
 
     return response.rows
 
 }
 
-module.exports = {getContractsByShipperUser}
+module.exports = {getContractsByShipperUser , createContract , contractExists}

@@ -19,7 +19,7 @@ router.post('/rates/:userId' , getRatesByShipperUser)
 
 router.get('/shipments/undelivered' , getUndeliveredShipments)
 
-router.get('/contracts/user/:id' , getContractsByShipperUser)
+router.get('/user/:id/contracts' , getContractsByShipperUser)
 
 router.post('/proxy/distance', async (req, res) => {
     try {

@@ -30,4 +30,62 @@ const getPkgsByCarrierUser = async (id) => {
         return response.rows;
 }
 
-module.exports = {getPkgsByCarrierUser}
+const createPkgByCarrierUser = async (id , name , minDistance1 , maxDistance1 , flatRate1 , perMileRate1 , fuelSurcharge1 , minDistance2 , maxDistance2 , flatRate2 , perMileRate2 , fuelSurcharge2 , minDistance3 , maxDistance3 , flatRate3 , perMileRate3 , fuelSurcharge3 , minDistance4 ,  flatRate4 , perMileRate4 , fuelSurcharge4) => {
+    try{
+        await pool.query('BEGIN')
+
+        let carrierId = await pool.query(`
+            SELECT carriers.id
+            FROM carriers
+            WHERE carriers.id IN(SELECT carrier_users.carrier_id FROM carrier_users WHERE carrier_users.id = $1)
+            ` , [id])
+
+        let newPkg = await pool.query(`
+                INSERT INTO rate_packages (name , carrier_id) 
+                
+                VALUES  ($1 , $2)
+
+                RETURNING *
+            ` , [name , carrierId.rows[0].id])
+
+        let newRate1 = await pool.query(`
+                INSERT INTO rates (package_id , min_distance , max_distance , flat_rate , per_mile_rate , fuel_surcharge_percentage)
+
+                VALUES ($1 , $2 , $3 , $4 , $5 , $6)
+
+                RETURNING *
+            ` , [newPkg.rows[0].id , minDistance1 , maxDistance1 , flatRate1 , perMileRate1 , fuelSurcharge1])
+
+        let newRate2 = await pool.query(`
+                INSERT INTO rates (package_id , min_distance , max_distance , flat_rate , per_mile_rate , fuel_surcharge_percentage)
+
+                VALUES ($1 , $2 , $3 , $4 , $5 , $6)
+
+                RETURNING *
+            ` , [newPkg.rows[0].id , minDistance2 , maxDistance2 , flatRate2 , perMileRate2 , fuelSurcharge2])
+
+        let newRate3 = await pool.query(`
+                INSERT INTO rates (package_id , min_distance , max_distance , flat_rate , per_mile_rate , fuel_surcharge_percentage)
+
+                VALUES ($1 , $2 , $3 , $4 , $5 , $6)
+
+                RETURNING *
+            ` , [newPkg.rows[0].id , minDistance3 , maxDistance3 , flatRate3 , perMileRate3 , fuelSurcharge3])
+
+        let newRate4 = await pool.query(`
+                INSERT INTO rates (package_id , min_distance ,  flat_rate , per_mile_rate , fuel_surcharge_percentage)
+
+                VALUES ($1 , $2 , $3 , $4 , $5 )
+
+                RETURNING *
+            ` , [newPkg.rows[0].id , minDistance4 , flatRate4 , perMileRate4 , fuelSurcharge4])
+
+            await pool.query('COMMIT')
+    
+    }catch(error){
+        await pool.query('ROLLBACK')
+        throw new Error(error)
+    }
+}
+
+module.exports = {getPkgsByCarrierUser , createPkgByCarrierUser}
