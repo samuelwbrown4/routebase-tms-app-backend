@@ -20,6 +20,25 @@ const createContract = async (shipperId , carrierId , packageId , contractStart 
     return newContract.rows
 }
 
+const deleteContract = async (id) => {
+    let deletedContract = await pool.query(`
+        DELETE FROM contracts
+        WHERE contracts.id = $1
+        RETURNING *` , [id])
+
+    return deletedContract.rows[0]
+}
+
+const updateContractStatus = async (id , status) => {
+    let contract = await pool.query(`
+        UPDATE contracts
+        SET contract_status = $2
+        WHERE contracts.id = $1
+        RETURNING *` , [id , status]);
+
+    return contract.rows[0]
+}
+
 
 
 const getContractsByShipperUser = async (id , status) => {
@@ -29,6 +48,8 @@ const getContractsByShipperUser = async (id , status) => {
             contracts.contract_status,
             contracts.carrier_id AS carrierId,
             carriers.name AS carrier,
+            contracts.start_date,
+            contracts.end_date,
             json_agg(
                 json_build_object(
                     'rateId' , rates.id,
@@ -52,7 +73,7 @@ const getContractsByShipperUser = async (id , status) => {
                                             JOIN shipper_locations ON shipper_locations.id = shipper_users.location_id
                                             WHERE shipper_users.id = $2)
 
-            GROUP BY contracts.id , contracts.carrier_id , carriers.name
+            GROUP BY contracts.id , contracts.carrier_id , carriers.name, contracts.start_date, contracts.end_date
 
         ` , [status, id]);
 
@@ -60,4 +81,4 @@ const getContractsByShipperUser = async (id , status) => {
 
 }
 
-module.exports = {getContractsByShipperUser , createContract , contractExists}
+module.exports = {getContractsByShipperUser , createContract , contractExists , deleteContract , updateContractStatus}

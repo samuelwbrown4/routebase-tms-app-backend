@@ -1,5 +1,5 @@
 const { getCarrierIdByUser } = require("../repos/carriers.repo");
-const {createContract , getContractsByShipperUser , contractExists } = require('../repos/contracts.repo.js')
+const {createContract , getContractsByShipperUser , contractExists , deleteContract , updateContractStatus} = require('../repos/contracts.repo.js')
 
 
 const createContractService = async (shipperId , carrierUserId , packageId , startDate , endDate) => {
@@ -26,4 +26,16 @@ const getContractsByShipperUserService = async (id , status) => {
     return contracts
 }
 
-module.exports = {createContractService , getContractsByShipperUserService}
+const deleteContractService = async (id) => {
+    const deletedContract = await deleteContract(id);
+
+    return deletedContract
+}
+
+const updateContractStatusService = async (id , status) => {
+    const contract = await updateContractStatus(id , status);
+
+    return contract
+}
+
+module.exports = {createContractService , getContractsByShipperUserService , deleteContractService , updateContractStatusService}

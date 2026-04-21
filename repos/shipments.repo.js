@@ -31,6 +31,8 @@ const createShipment = async (originId, destinationId, carrier, equipmentType, s
 
 
         await pool.query('COMMIT')
+
+        return newShipment.rows[0]
     } catch (err) {
         await pool.query('ROLLBACK')
         console.error('Query error:', err.message)

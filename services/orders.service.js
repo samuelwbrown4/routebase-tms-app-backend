@@ -1,4 +1,4 @@
-const {getAllOrders , getOrderLineItems} = require('../repos/orders.repo.js')
+const {getAllOrders , getOrderLineItems , getOrdersByStatus} = require('../repos/orders.repo.js')
 
 const getAllOrdersService = async () =>{
     const orders = await getAllOrders();
@@ -12,4 +12,10 @@ const getOrderLineItemsService = async (orderId) => {
     return lineItems;
 }
 
-module.exports = {getAllOrdersService , getOrderLineItemsService}
+const getOrdersByStatusService = async (status , shipperLocation) => {
+    const orders = await getOrdersByStatus(status , shipperLocation);
+
+    return orders
+}
+
+module.exports = {getAllOrdersService , getOrderLineItemsService , getOrdersByStatusService}

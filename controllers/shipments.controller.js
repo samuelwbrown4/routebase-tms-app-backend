@@ -4,9 +4,9 @@ const createShipment = async (req , res) => {
     try{ 
         const { originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders } = req.body
 
-        await createShipmentService(originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders )
+        const shipment = await createShipmentService(originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders )
 
-        res.status(200).json({ message: 'Shipment created successfully' })
+        res.status(200).json({ shipment })
     }catch(err){
         res.status(500).json({error: err.message})
     }

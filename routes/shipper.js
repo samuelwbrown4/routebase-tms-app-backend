@@ -1,13 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const {getAllOrders , getOrderLineItems} = require('../controllers/orders.controller');
+const pool = require('../db/pool')
+const {getAllOrders , getOrderLineItems, getOrdersByStatus} = require('../controllers/orders.controller');
 const {getAllCarriers} = require('../controllers/carriers.controller');
 const {createShipment , getUndeliveredShipments} = require('../controllers/shipments.controller');
 const {getRatesByShipperUser} = require('../controllers/rates.controller')
-const {getContractsByShipperUser} = require('../controllers/contracts.controller')
+const {getContractsByShipperUser , deleteContract ,updateContractStatus} = require('../controllers/contracts.controller')
+const {getCompanyId , getShipperLocationId} = require('../controllers/shippers.controller')
 
+
+router.get('/companies/:id' , getCompanyId)
+
+router.get('/shipper-locations/:id' , getShipperLocationId)
 
 router.get('/orders' , getAllOrders);
+
+router.get('/orders/:id' , getOrdersByStatus)
 
 router.get('/orders/:orderId/line-items' , getOrderLineItems)
 
@@ -67,6 +75,10 @@ router.get('/equipment-types', async (req, res) => {
         res.status(500).json({ error: err.message })
     }
 });
+
+router.delete('/contracts/:id' , deleteContract)
+
+router.patch('/contracts/:id' , updateContractStatus)
 
 
 module.exports = router;

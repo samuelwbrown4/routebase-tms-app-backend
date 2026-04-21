@@ -1,7 +1,9 @@
 const {createShipment , getUndeliveredShipments , getShipmentsByCarrierId , updateShipment} = require('../repos/shipments.repo')
 
 const createShipmentService = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId,  orders) => {
-    await createShipment(originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders)
+    const shipment = await createShipment(originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders);
+
+    return shipment;
 };
 
 const getUndeliveredShipmentsService = async () => {
