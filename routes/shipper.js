@@ -6,12 +6,14 @@ const {getAllCarriers} = require('../controllers/carriers.controller');
 const {createShipment , getUndeliveredShipments} = require('../controllers/shipments.controller');
 const {getRatesByShipperUser} = require('../controllers/rates.controller')
 const {getContractsByShipperUser , deleteContract ,updateContractStatus} = require('../controllers/contracts.controller')
-const {getCompanyId , getShipperLocationId} = require('../controllers/shippers.controller')
+const {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId} = require('../controllers/shippers.controller')
 
 
 router.get('/companies/:id' , getCompanyId)
 
 router.get('/shipper-locations/:id' , getShipperLocationId)
+
+router.get('/locations/:id' , getAllShipperLocationsByCompanyId)
 
 router.get('/orders' , getAllOrders);
 

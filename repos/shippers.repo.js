@@ -26,4 +26,20 @@ const getShipperLocationId = async (id) => {
         return shipperLocationId.rows[0].id
 }
 
-module.exports = {getCompanyId , getShipperLocationId}
+const getAllShipperLocationsByCompanyId = async (id) => {
+    const locations = await pool.query(`
+        SELECT 
+        id,
+        company_id,
+        erp_id,
+        name
+
+        FROM shipper_locations
+
+        WHERE company_id = $1
+        ` , [id])
+
+    return locations.rows
+}
+
+module.exports = {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId}
