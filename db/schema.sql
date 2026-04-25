@@ -90,8 +90,9 @@ CREATE TABLE shipper_users (
     last_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     phone_number VARCHAR(20) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255),
     role role NOT NULL,
+    newUser BOOLEAN DEFAULT TRUE,
     CONSTRAINT fk_location_id FOREIGN KEY (location_id) REFERENCES shipper_locations(id)
 );
 
@@ -102,8 +103,9 @@ CREATE TABLE carrier_users (
     last_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     phone_number VARCHAR(20) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255),
     role role NOT NULL,
+    newUser BOOLEAN DEFAULT TRUE,
     CONSTRAINT fk_carrier_id FOREIGN KEY (carrier_id) REFERENCES carriers(id)
 );
 

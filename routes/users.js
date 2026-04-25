@@ -26,7 +26,7 @@ router.post('/login', async (req, res) => {
             FROM
                 ${table}
             WHERE
-                ${table}.email = $1` ,
+                ${table}.email = $1 AND ${table}.newUser = false` ,
             [email]);
 
         if (result.rows.length === 0) {

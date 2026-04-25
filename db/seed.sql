@@ -27,11 +27,11 @@ INSERT INTO carriers (id, name, scac, address) VALUES
 -- ------------------------------------------------------------
 -- CARRIER USERS
 -- ------------------------------------------------------------
-INSERT INTO carrier_users (id, carrier_id, first_name, last_name, email, phone_number, password_hash, role) VALUES
-  ('a5000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000001', 'Robert',  'Kincaid',  'r.kincaid@trueflow.com',  '816-555-0201', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin'),
-  ('a5000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000001', 'Denise',  'Hargrove', 'd.hargrove@trueflow.com', '816-555-0202', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('a5000000-0000-0000-0000-000000000003', 'b1000000-0000-0000-0000-000000000002', 'Marcus',  'Deleon',   'm.deleon@zenpulse.com',   '214-555-0203', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin'),
-  ('a5000000-0000-0000-0000-000000000004', 'b1000000-0000-0000-0000-000000000002', 'Tamara',  'Osei',     't.osei@zenpulse.com',     '214-555-0204', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user');
+INSERT INTO carrier_users (id, carrier_id, first_name, last_name, email, phone_number, password_hash, role, newUser) VALUES
+  ('a5000000-0000-0000-0000-000000000001', 'b1000000-0000-0000-0000-000000000001', 'Robert',  'Kincaid',  'r.kincaid@trueflow.com',  '816-555-0201', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin', false),
+  ('a5000000-0000-0000-0000-000000000002', 'b1000000-0000-0000-0000-000000000001', 'Denise',  'Hargrove', 'd.hargrove@trueflow.com', '816-555-0202', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('a5000000-0000-0000-0000-000000000003', 'b1000000-0000-0000-0000-000000000002', 'Marcus',  'Deleon',   'm.deleon@zenpulse.com',   '214-555-0203', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin', false),
+  ('a5000000-0000-0000-0000-000000000004', 'b1000000-0000-0000-0000-000000000002', 'Tamara',  'Osei',     't.osei@zenpulse.com',     '214-555-0204', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false);
 
 
 -- ------------------------------------------------------------
@@ -57,31 +57,31 @@ INSERT INTO shipper_locations (id, company_id, erp_id, name, address, city, stat
 -- ------------------------------------------------------------
 -- SHIPPER USERS
 -- ------------------------------------------------------------
-INSERT INTO shipper_users (id, location_id, erp_id, first_name, last_name, email, phone_number, password_hash, role) VALUES
-  ('e1000000-0000-0000-0000-000000000001', 'd1000000-0000-0000-0000-000000000001', 'U001', 'Laura',    'Hensley',   'l.hensley@purepath.com',   '402-555-0101', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin'),
-  ('e1000000-0000-0000-0000-000000000002', 'd1000000-0000-0000-0000-000000000001', 'U002', 'Marcus',   'Tran',      'm.tran@purepath.com',       '402-555-0102', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000003', 'd1000000-0000-0000-0000-000000000001', 'U003', 'Diana',    'Kowalski',  'd.kowalski@purepath.com',  '402-555-0103', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000004', 'd1000000-0000-0000-0000-000000000001', 'U004', 'James',    'Okafor',    'j.okafor@purepath.com',    '402-555-0104', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000005', 'd1000000-0000-0000-0000-000000000002', 'U005', 'Rachel',   'Goldstein', 'r.goldstein@purepath.com', '212-555-0105', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin'),
-  ('e1000000-0000-0000-0000-000000000006', 'd1000000-0000-0000-0000-000000000002', 'U006', 'Carlos',   'Reyes',     'c.reyes@purepath.com',     '212-555-0106', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000007', 'd1000000-0000-0000-0000-000000000002', 'U007', 'Priya',    'Nair',      'p.nair@purepath.com',      '212-555-0107', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000008', 'd1000000-0000-0000-0000-000000000002', 'U008', 'Kevin',    'Marsh',     'k.marsh@purepath.com',     '212-555-0108', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000009', 'd1000000-0000-0000-0000-000000000003', 'U009', 'Sandra',   'Yuen',      's.yuen@purepath.com',      '206-555-0109', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin'),
-  ('e1000000-0000-0000-0000-000000000010', 'd1000000-0000-0000-0000-000000000003', 'U010', 'Derek',    'Paulson',   'd.paulson@purepath.com',   '206-555-0110', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000011', 'd1000000-0000-0000-0000-000000000003', 'U011', 'Megan',    'Flores',    'm.flores@purepath.com',    '206-555-0111', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000012', 'd1000000-0000-0000-0000-000000000003', 'U012', 'Tony',     'Whitfield', 't.whitfield@purepath.com', '206-555-0112', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000013', 'd1000000-0000-0000-0000-000000000004', 'U013', 'Angela',   'Morrison',  'a.morrison@nexora.com',    '407-555-0113', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin'),
-  ('e1000000-0000-0000-0000-000000000014', 'd1000000-0000-0000-0000-000000000004', 'U014', 'Brian',    'Nakamura',  'b.nakamura@nexora.com',    '407-555-0114', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000015', 'd1000000-0000-0000-0000-000000000004', 'U015', 'Tiffany',  'Bowers',    't.bowers@nexora.com',      '407-555-0115', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000016', 'd1000000-0000-0000-0000-000000000004', 'U016', 'Omar',     'Khalil',    'o.khalil@nexora.com',      '407-555-0116', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000017', 'd1000000-0000-0000-0000-000000000005', 'U017', 'Nicole',   'Hartman',   'n.hartman@nexora.com',     '614-555-0117', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin'),
-  ('e1000000-0000-0000-0000-000000000018', 'd1000000-0000-0000-0000-000000000005', 'U018', 'Jason',    'Webb',      'j.webb@nexora.com',        '614-555-0118', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000019', 'd1000000-0000-0000-0000-000000000005', 'U019', 'Vanessa',  'Choi',      'v.choi@nexora.com',        '614-555-0119', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000020', 'd1000000-0000-0000-0000-000000000005', 'U020', 'Patrick',  'Givens',    'p.givens@nexora.com',      '614-555-0120', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000021', 'd1000000-0000-0000-0000-000000000006', 'U021', 'Christine','Delgado',   'c.delgado@nexora.com',     '480-555-0121', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin'),
-  ('e1000000-0000-0000-0000-000000000022', 'd1000000-0000-0000-0000-000000000006', 'U022', 'Andre',    'Simpson',   'a.simpson@nexora.com',     '480-555-0122', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000023', 'd1000000-0000-0000-0000-000000000006', 'U023', 'Leslie',   'Park',      'l.park@nexora.com',        '480-555-0123', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user'),
-  ('e1000000-0000-0000-0000-000000000024', 'd1000000-0000-0000-0000-000000000006', 'U024', 'Trevor',   'Odom',      't.odom@nexora.com',        '480-555-0124', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user');
+INSERT INTO shipper_users (id, location_id, erp_id, first_name, last_name, email, phone_number, password_hash, role, newUser) VALUES
+  ('e1000000-0000-0000-0000-000000000001', 'd1000000-0000-0000-0000-000000000001', 'U001', 'Laura',    'Hensley',   'l.hensley@purepath.com',   '402-555-0101', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin', false),
+  ('e1000000-0000-0000-0000-000000000002', 'd1000000-0000-0000-0000-000000000001', 'U002', 'Marcus',   'Tran',      'm.tran@purepath.com',       '402-555-0102', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000003', 'd1000000-0000-0000-0000-000000000001', 'U003', 'Diana',    'Kowalski',  'd.kowalski@purepath.com',  '402-555-0103', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000004', 'd1000000-0000-0000-0000-000000000001', 'U004', 'James',    'Okafor',    'j.okafor@purepath.com',    '402-555-0104', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000005', 'd1000000-0000-0000-0000-000000000002', 'U005', 'Rachel',   'Goldstein', 'r.goldstein@purepath.com', '212-555-0105', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin', false),
+  ('e1000000-0000-0000-0000-000000000006', 'd1000000-0000-0000-0000-000000000002', 'U006', 'Carlos',   'Reyes',     'c.reyes@purepath.com',     '212-555-0106', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000007', 'd1000000-0000-0000-0000-000000000002', 'U007', 'Priya',    'Nair',      'p.nair@purepath.com',      '212-555-0107', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000008', 'd1000000-0000-0000-0000-000000000002', 'U008', 'Kevin',    'Marsh',     'k.marsh@purepath.com',     '212-555-0108', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000009', 'd1000000-0000-0000-0000-000000000003', 'U009', 'Sandra',   'Yuen',      's.yuen@purepath.com',      '206-555-0109', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin', false),
+  ('e1000000-0000-0000-0000-000000000010', 'd1000000-0000-0000-0000-000000000003', 'U010', 'Derek',    'Paulson',   'd.paulson@purepath.com',   '206-555-0110', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000011', 'd1000000-0000-0000-0000-000000000003', 'U011', 'Megan',    'Flores',    'm.flores@purepath.com',    '206-555-0111', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000012', 'd1000000-0000-0000-0000-000000000003', 'U012', 'Tony',     'Whitfield', 't.whitfield@purepath.com', '206-555-0112', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000013', 'd1000000-0000-0000-0000-000000000004', 'U013', 'Angela',   'Morrison',  'a.morrison@nexora.com',    '407-555-0113', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin', false),
+  ('e1000000-0000-0000-0000-000000000014', 'd1000000-0000-0000-0000-000000000004', 'U014', 'Brian',    'Nakamura',  'b.nakamura@nexora.com',    '407-555-0114', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000015', 'd1000000-0000-0000-0000-000000000004', 'U015', 'Tiffany',  'Bowers',    't.bowers@nexora.com',      '407-555-0115', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000016', 'd1000000-0000-0000-0000-000000000004', 'U016', 'Omar',     'Khalil',    'o.khalil@nexora.com',      '407-555-0116', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000017', 'd1000000-0000-0000-0000-000000000005', 'U017', 'Nicole',   'Hartman',   'n.hartman@nexora.com',     '614-555-0117', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin', false),
+  ('e1000000-0000-0000-0000-000000000018', 'd1000000-0000-0000-0000-000000000005', 'U018', 'Jason',    'Webb',      'j.webb@nexora.com',        '614-555-0118', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000019', 'd1000000-0000-0000-0000-000000000005', 'U019', 'Vanessa',  'Choi',      'v.choi@nexora.com',        '614-555-0119', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000020', 'd1000000-0000-0000-0000-000000000005', 'U020', 'Patrick',  'Givens',    'p.givens@nexora.com',      '614-555-0120', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000021', 'd1000000-0000-0000-0000-000000000006', 'U021', 'Christine','Delgado',   'c.delgado@nexora.com',     '480-555-0121', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'admin', false),
+  ('e1000000-0000-0000-0000-000000000022', 'd1000000-0000-0000-0000-000000000006', 'U022', 'Andre',    'Simpson',   'a.simpson@nexora.com',     '480-555-0122', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000023', 'd1000000-0000-0000-0000-000000000006', 'U023', 'Leslie',   'Park',      'l.park@nexora.com',        '480-555-0123', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false),
+  ('e1000000-0000-0000-0000-000000000024', 'd1000000-0000-0000-0000-000000000006', 'U024', 'Trevor',   'Odom',      't.odom@nexora.com',        '480-555-0124', '$2b$10$sVbr.iBbVIjIIIjGgpWMXeCmaPmcHcswaVxlPWDAKqup7o33PkmE6', 'user', false);
 
 
 -- ------------------------------------------------------------
