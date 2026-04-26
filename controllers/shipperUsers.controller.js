@@ -1,4 +1,5 @@
-const { createShipperUserService, getShipperUserByEmailService, updateNewShipperUserService } = require('../services/shipperUsers.service');
+const { createShipperUserService, getShipperUserByEmailService, updateNewShipperUserService , getAllShipperUsersService } = require('../services/shipperUsers.service');
+const {getCompanyIdService} = require('../services/shippers.service')
 const bcrypt = require('bcrypt');
 const { transporter } = require('../email/mailer');
 
@@ -39,4 +40,16 @@ const updateNewShipperUser = async (req, res) => {
 
 }
 
-module.exports = { createShipperUser, updateNewShipperUser }
+const getAllShipperUsers = async (req , res) => {
+    try{
+        const {id} = req.params
+        const companyId = await getCompanyIdService(id);
+
+        const users = await getAllShipperUsersService(companyId)
+        res.status(200).json({users})
+    }catch(err){
+        res.status(500).json({error: err.message})
+    }
+}
+
+module.exports = { createShipperUser, updateNewShipperUser , getAllShipperUsers }

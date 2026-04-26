@@ -7,10 +7,12 @@ const {createShipment , getUndeliveredShipments} = require('../controllers/shipm
 const {getRatesByShipperUser} = require('../controllers/rates.controller')
 const {getContractsByShipperUser , deleteContract ,updateContractStatus} = require('../controllers/contracts.controller')
 const {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId} = require('../controllers/shippers.controller')
-const {createShipperUser , updateNewShipperUser} = require('../controllers/shipperUsers.controller')
+const {createShipperUser , updateNewShipperUser , getAllShipperUsers} = require('../controllers/shipperUsers.controller')
 
 
 router.get('/companies/:id' , getCompanyId)
+
+router.get('/users/:id' , getAllShipperUsers)
 
 router.get('/shipper-locations/:id' , getShipperLocationId)
 

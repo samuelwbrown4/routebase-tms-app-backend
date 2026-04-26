@@ -33,4 +33,15 @@ const updateNewShipperUser = async (id , hashedPassword) => {
     return update.rows[0]
 }
 
-module.exports = {createShipperUser , getShipperUserByEmail , updateNewShipperUser}
+const getAllShipperUsers = async (companyId) => {
+    const users = await pool.query(`
+        SELECT *
+        FROM shipper_users
+        JOIN shipper_locations ON shipper_locations.id = shipper_users.location_id
+        WHERE shipper_locations.company_id = $1
+        ` , [companyId])
+
+    return users.rows
+}
+
+module.exports = {createShipperUser , getShipperUserByEmail , updateNewShipperUser , getAllShipperUsers}
