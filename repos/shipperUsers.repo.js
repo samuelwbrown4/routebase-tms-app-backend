@@ -35,7 +35,17 @@ const updateNewShipperUser = async (id , hashedPassword) => {
 
 const getAllShipperUsers = async (companyId) => {
     const users = await pool.query(`
-        SELECT *
+        SELECT 
+        shipper_users.id AS user_id,
+        shipper_users.location_id,
+        shipper_locations.name AS location_name,
+        shipper_users.first_name,
+        shipper_users.last_name,
+        shipper_users.email,
+        shipper_users.phone_number,
+        shipper_users.role,
+        shipper_users.newUser
+
         FROM shipper_users
         JOIN shipper_locations ON shipper_locations.id = shipper_users.location_id
         WHERE shipper_locations.company_id = $1
