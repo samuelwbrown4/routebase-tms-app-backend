@@ -11,7 +11,7 @@ const getCustomerLocationsByCompanyId = async (id) => {
         customer_locations.zip_code AS cust_loc_zip_code,
         customer_locations.country AS cust_loc_country,
         customer_locations.latitude AS cust_loc_lat,
-        customer_locations.longitude AS cust_loc_long
+        customer_locations.longitude AS cust_loc_long,
         customers.name AS customer_name,
         customers.id AS customer_id,
         customers.address AS customer_address,
@@ -25,9 +25,19 @@ const getCustomerLocationsByCompanyId = async (id) => {
         JOIN customers ON customers.id = customer_locations.customer_id
 
         WHERE customers.company_id = $1
-        `[id])
+        `,[id])
 
         return customerLocations.rows
 }
 
-module.exports = {getCustomerLocationsByCompanyId}
+const createCustomerLocation = async (customerId , name , address , city , state , zip , country , lat , long) => {
+    let newCustomerLocation = await pool.query(`
+        INSERT INTO customer_locations
+        (customer_id , name , address , city , state , zip_code , country , latitude , longitude)
+        VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8 , $9)
+        RETURNING *` , [customerId , name , address , city , state , zip , country , lat , long])
+
+        return newCustomerLocation.rows[0]
+}
+
+module.exports = {getCustomerLocationsByCompanyId , createCustomerLocation}

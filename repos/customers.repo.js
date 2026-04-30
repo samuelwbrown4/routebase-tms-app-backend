@@ -10,4 +10,14 @@ const getCustomersByCompanyId = async (id) => {
     return customers.rows
 }
 
-module.exports = {getCustomersByCompanyId}
+const createCustomer = async (companyId , name , address , city , state , zip , country) => {
+    let newCustomer = await pool.query(`
+        INSERT INTO customers 
+        (company_id , name , address , city , state , zip_code , country)
+        VALUES ($1 , $2 , $3 , $4 , $5 , $6 ,$7)
+        RETURNING *`, [companyId , name , address , city , state , zip , country])
+
+        return newCustomer.rows
+}
+
+module.exports = {getCustomersByCompanyId , createCustomer}

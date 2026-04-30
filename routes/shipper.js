@@ -8,7 +8,8 @@ const {getRatesByShipperUser} = require('../controllers/rates.controller')
 const {getContractsByShipperUser , deleteContract ,updateContractStatus} = require('../controllers/contracts.controller')
 const {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId} = require('../controllers/shippers.controller')
 const {createShipperUser , updateNewShipperUser , getAllShipperUsers} = require('../controllers/shipperUsers.controller')
-const {getCustomerLocationsByCompanyId} = require('../controllers/customerLocations.controller')
+const {getCustomerLocationsByCompanyId , createCustomerLocation} = require('../controllers/customerLocations.controller')
+const {getCustomersByCompanyId} = require('../controllers/customers.controller')
 
 
 router.get('/companies/:id' , getCompanyId)
@@ -21,7 +22,11 @@ router.post('/shipper-users' , createShipperUser)
 
 router.patch('/shipper-users/:email' , updateNewShipperUser)
 
+router.get('/customers/:userId' , getCustomersByCompanyId)
+
 router.get('/customer-locations/:userId' , getCustomerLocationsByCompanyId)
+
+router.post('/customer-locations/:userId' , createCustomerLocation)
 
 router.get('/locations/:id' , getAllShipperLocationsByCompanyId)
 

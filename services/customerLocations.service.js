@@ -1,4 +1,4 @@
-const {getCustomerLocationsByCompanyId} = require('../repos/customerLocations.repo');
+const {getCustomerLocationsByCompanyId , createCustomerLocation} = require('../repos/customerLocations.repo');
 
 const getCustomerLocationsByCompanyIdService = async (id) => {
     const customerLocations = await getCustomerLocationsByCompanyId(id)
@@ -6,4 +6,10 @@ const getCustomerLocationsByCompanyIdService = async (id) => {
     return customerLocations;
 }
 
-module.exports = {getCustomerLocationsByCompanyIdService}
+const createCustomerLocationService = async (customerId , name , address , city , state , zip , country , lat , long) => {
+    const newCustomerLocation = await createCustomerLocation(customerId , name , address , city , state , zip , country , lat , long)
+
+    return newCustomerLocation
+}
+
+module.exports = {getCustomerLocationsByCompanyIdService , createCustomerLocationService}
