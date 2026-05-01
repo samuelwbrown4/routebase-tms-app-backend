@@ -2,8 +2,8 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TYPE role AS ENUM ('admin', 'user');
 CREATE TYPE order_status AS ENUM ('unplanned', 'planned', 'in_transit', 'delivered', 'cancelled');
-CREATE TYPE shipment_status AS ENUM ('built', 'planned', 'in_transit', 'delivered', 'cancelled');
-CREATE TYPE shipment_events_type AS ENUM ('picked_up', 'in_transit', 'delivered' , 'comment');
+CREATE TYPE shipment_status AS ENUM ('built', 'planned', 'routed' , 'in_transit', 'delivered', 'cancelled');
+CREATE TYPE shipment_events_type AS ENUM ('routed' , 'picked_up', 'in_transit', 'delivered' , 'comment');
 CREATE TYPE contract_status AS ENUM ('pending' ,'active', 'expired' , 'rejected', 'terminated');
 
 CREATE TABLE companies (
@@ -142,6 +142,7 @@ CREATE TABLE shipments (
     actual_pickup_date DATE,
     actual_delivery_date DATE,
     planned_by_user_id UUID NOT NULL,
+    route_geometry JSONB,
     CONSTRAINT fk_origin_id FOREIGN KEY (origin_id) REFERENCES shipper_locations(id),
     CONSTRAINT fk_destination_id FOREIGN KEY (destination_id) REFERENCES customer_locations(id),
     CONSTRAINT fk_carrier_id FOREIGN KEY (carrier_id) REFERENCES carriers(id),

@@ -1,4 +1,4 @@
-const {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId} = require('../repos/shippers.repo')
+const {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId , getShipmentsByShipperLocation} = require('../repos/shippers.repo')
 
 const getCompanyIdService = async (id) => {
     let companyId = await getCompanyId(id);
@@ -18,4 +18,10 @@ const getAllShipperLocationsByCompanyIdService = async (id) => {
     return locations
 }
 
-module.exports = {getCompanyIdService , getShipperLocationIdService , getAllShipperLocationsByCompanyIdService}
+const getShipmentsByShipperLocationService = async (id , status) => {
+    const shipments = await getShipmentsByShipperLocation(id , status)
+
+    return shipments
+}
+
+module.exports = {getCompanyIdService , getShipperLocationIdService , getAllShipperLocationsByCompanyIdService , getShipmentsByShipperLocationService}

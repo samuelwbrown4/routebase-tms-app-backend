@@ -1,13 +1,16 @@
 const express = require('express');
 const pool = require('../db/pool')
 const router = express.Router();
-const {getShipmentsByCarrierId , updateShipment} = require('../controllers/shipments.controller')
+const {getShipmentsByCarrierId , updateShipment , getShipmentById} = require('../controllers/shipments.controller')
 const {getPkgsByCarrierUser , createPkgByCarrierUser} = require('../controllers/packages.controller')
 const {createContract} = require('../controllers/contracts.controller')
 
 router.get('/shipments/:userId' , getShipmentsByCarrierId)
 
-router.post('/shipments/:shipmentId' , updateShipment)
+router.get('/shipments/geometry/:shipmentId' , getShipmentById)
+
+router.patch('/shipments/:shipmentId' , updateShipment)
+
 
 router.get('/packages/:id' , getPkgsByCarrierUser)
 

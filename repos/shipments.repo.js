@@ -48,7 +48,8 @@ const getUndeliveredShipments = async () => {
     return countUndelivered.rows[0];
 }
 
-const getShipmentsByCarrierId = async (userId) => {
+
+const getShipmentsByCarrierId = async (id , status ) => {
             const response = await pool.query(`
             SELECT 
             
@@ -78,14 +79,14 @@ const getShipmentsByCarrierId = async (userId) => {
             JOIN shipper_locations ON shipper_locations.id = shipments.origin_id
             JOIN customer_locations ON customer_locations.id = shipments.destination_id
 
-            WHERE carrier_users.id = $1
-            AND shipments.status != 'delivered'
-            ` , [userId])
+            WHERE carrier_users.id = $1 
+            AND shipments.status = ANY($2)
+            ` , [id , status ])
 
         return response.rows
 }
 
-const updateShipment = async (shipmentId , date , userId , eventType) => {
+const updateShipment = async (shipmentId , date , userId , eventType , routeGeometry) => {
     try{
         await pool.query('BEGIN')
 
@@ -94,6 +95,7 @@ const updateShipment = async (shipmentId , date , userId , eventType) => {
             SET status = CASE
                 WHEN $1 = 'picked_up' THEN 'in_transit'
                 WHEN $1 = 'delivered' THEN 'delivered'
+                WHEN $1 = 'routed' THEN 'routed'
                 ELSE status
             END,
             actual_pickup_date = CASE
@@ -103,9 +105,13 @@ const updateShipment = async (shipmentId , date , userId , eventType) => {
             actual_delivery_date = CASE
                 WHEN $1 = 'delivered' THEN $2
                 ELSE actual_delivery_date
+            END,
+            route_geometry = CASE
+                WHEN $1 = 'routed' THEN $4
+                ELSE route_geometry
             END
             WHERE shipments.id = $3 
-            ` , [eventType , date , shipmentId])
+            ` , [eventType , date , shipmentId , routeGeometry])
 
         await pool.query(`
             UPDATE orders
@@ -131,4 +137,30 @@ const updateShipment = async (shipmentId , date , userId , eventType) => {
     }
 }
 
-module.exports = {createShipment , getUndeliveredShipments , getShipmentsByCarrierId, updateShipment}
+const getShipmentCoordsById = async (id) => {
+    let coords = await pool.query(`
+        SELECT 
+        shipper_locations.latitude AS origin_lat,
+        shipper_locations.longitude AS origin_lon,
+        customer_locations.latitude AS dest_lat,
+        customer_locations.longitude AS dest_lon
+
+        FROM shipments 
+        JOIN shipper_locations ON shipper_locations.id = shipments.origin_id
+        JOIN customer_locations ON customer_locations.id = shipments.destination_id
+
+        WHERE shipments.id = $1
+        `,[id])
+
+    return coords.rows[0]
+}
+
+const getShipmentById = async (id) => {
+    let shipment = await pool.query(`
+        SELECT * FROM shipments WHERE id = $1
+        `,[id])
+
+        return shipment.rows[0]
+}
+
+module.exports = {createShipment , getUndeliveredShipments , getShipmentsByCarrierId, updateShipment , getShipmentCoordsById , getShipmentById}

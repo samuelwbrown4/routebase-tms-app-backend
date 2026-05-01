@@ -1,4 +1,4 @@
-const {getCompanyIdService , getShipperLocationIdService , getAllShipperLocationsByCompanyIdService} = require('../services/shippers.service');
+const {getCompanyIdService , getShipperLocationIdService , getAllShipperLocationsByCompanyIdService , getShipmentsByShipperLocationService} = require('../services/shippers.service');
 
 const getCompanyId = async (req , res) => {
     try{
@@ -35,4 +35,17 @@ const getAllShipperLocationsByCompanyId = async (req , res) => {
     }
 }
 
-module.exports = {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId}
+const getShipmentsByShipperLocation = async (req , res) => {
+    try{
+        const { id } = req.params;
+        const {status} = req.query;
+        let shipperLocationId = await getShipperLocationIdService(id)
+        let statusArray = status.split(',');
+        let shipments = await getShipmentsByShipperLocationService(shipperLocationId , statusArray);
+        res.status(200).json({shipments})
+    }catch(err){
+        res.status(500).json({error: err.message})
+    }
+}
+
+module.exports = {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId , getShipmentsByShipperLocation}
