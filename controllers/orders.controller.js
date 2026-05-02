@@ -3,7 +3,9 @@ const {getShipperLocationIdService} = require('../services/shippers.service.js')
 
 const getAllOrders = async (req , res) => {
     try{
-        const orders = await getAllOrdersService();
+        const {userId} = req.params;
+        const locId = await getShipperLocationIdService(userId)
+        const orders = await getAllOrdersService(locId);
         res.status(200).json({orders: orders})
     }catch(err) {
         res.status(500).json({ error: err.message })

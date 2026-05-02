@@ -1,6 +1,6 @@
 const pool = require('../db/pool.js')
 
-const getAllOrders = async () => {
+const getAllOrders = async (id) => {
     const orders = await pool.query(`
             SELECT 
                 orders.id,
@@ -33,13 +33,13 @@ const getAllOrders = async () => {
                 order_line_items ON orders.id = order_line_items.order_id 
 
             
-            WHERE orders.order_status = 'unplanned'
+            WHERE orders.order_status = 'unplanned' AND shipper_locations.id = $1
                 
             GROUP BY 
                 orders.id , 
                 orders.requested_ship_date,
                 shipper_locations.id , 
-                customer_locations.id`)
+                customer_locations.id` , [id])
 
     return orders.rows;
 }

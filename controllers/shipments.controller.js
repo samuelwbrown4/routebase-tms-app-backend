@@ -14,7 +14,8 @@ const createShipment = async (req, res) => {
 
 const getUndeliveredShipments = async (req, res) => {
     try {
-        const undeliveredShipments = await getUndeliveredShipmentsService()
+        const {status} = req.query
+        const undeliveredShipments = await getUndeliveredShipmentsService(status)
 
         res.status(200).json({ undeliveredShipments })
     } catch (err) {
@@ -39,6 +40,7 @@ const updateShipment = async (req, res) => {
         const { shipmentId } = req.params;
         const { date, userId, eventType } = req.body
         let routeGeometry = undefined
+        let driveTime = undefined
 
         if (eventType === 'routed') {
             let coords = await getShipmentCoordsByIdService(shipmentId)
@@ -52,10 +54,11 @@ const updateShipment = async (req, res) => {
             let result = await response.json()
 
             routeGeometry = JSON.stringify(result.features[0].geometry.coordinates[0].map(([lng, lat]) => [lat, lng]));
+            driveTime = result.features[0].properties.time
 
         }
 
-        await updateShipmentService(shipmentId, date, userId, eventType, routeGeometry)
+        await updateShipmentService(shipmentId, date, userId, eventType, routeGeometry , driveTime)
         res.status(200).json({ message: 'Shipment updated successfully' })
 
     } catch (err) {

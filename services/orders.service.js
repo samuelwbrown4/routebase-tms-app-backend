@@ -1,7 +1,7 @@
 const {getAllOrders , getOrderLineItems , getOrdersByStatus} = require('../repos/orders.repo.js')
 
-const getAllOrdersService = async () =>{
-    const orders = await getAllOrders();
+const getAllOrdersService = async (id) =>{
+    const orders = await getAllOrders(id);
 
     return orders;
 }

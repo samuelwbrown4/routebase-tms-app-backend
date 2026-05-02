@@ -6,6 +6,16 @@ CREATE TYPE shipment_status AS ENUM ('built', 'planned', 'routed' , 'in_transit'
 CREATE TYPE shipment_events_type AS ENUM ('routed' , 'picked_up', 'in_transit', 'delivered' , 'comment');
 CREATE TYPE contract_status AS ENUM ('pending' ,'active', 'expired' , 'rejected', 'terminated');
 
+CREATE OR REPLACE FUNCTION set_transit_start_time()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.status = 'in_transit' AND OLD.status != 'in_transit' THEN
+    NEW.transit_start_time = NOW();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE TABLE companies (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -143,12 +153,21 @@ CREATE TABLE shipments (
     actual_delivery_date DATE,
     planned_by_user_id UUID NOT NULL,
     route_geometry JSONB,
+    transit_start_time TIMESTAMP,
+    route_time_seconds DECIMAL(10,3),
+    current_position JSONB,
+    near_destination BOOLEAN DEFAULT FALSE,
     CONSTRAINT fk_origin_id FOREIGN KEY (origin_id) REFERENCES shipper_locations(id),
     CONSTRAINT fk_destination_id FOREIGN KEY (destination_id) REFERENCES customer_locations(id),
     CONSTRAINT fk_carrier_id FOREIGN KEY (carrier_id) REFERENCES carriers(id),
     CONSTRAINT fk_planned_by_user_id FOREIGN KEY (planned_by_user_id) REFERENCES shipper_users(id),
     CONSTRAINT fk_equipment_type_id FOREIGN KEY (equipment_type_id) REFERENCES equipment_types(id)
 );
+
+CREATE TRIGGER trigger_set_transit_start_time
+BEFORE UPDATE ON shipments
+FOR EACH ROW
+EXECUTE FUNCTION set_transit_start_time();
 
 CREATE TABLE orders (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

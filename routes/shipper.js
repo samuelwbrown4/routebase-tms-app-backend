@@ -44,7 +44,7 @@ router.post('/shipments' , createShipment)
 
 router.post('/rates/:userId' , getRatesByShipperUser)
 
-router.get('/shipments/undelivered' , getUndeliveredShipments)
+router.get('/shipments' , getUndeliveredShipments)
 
 router.get('/user/:id/contracts' , getContractsByShipperUser)
 

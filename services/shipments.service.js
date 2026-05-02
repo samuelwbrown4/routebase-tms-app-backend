@@ -6,8 +6,8 @@ const createShipmentService = async (originId, destinationId, carrier, equipment
     return shipment;
 };
 
-const getUndeliveredShipmentsService = async () => {
-    const undeliveredShipments = await getUndeliveredShipments();
+const getUndeliveredShipmentsService = async (status) => {
+    const undeliveredShipments = await getUndeliveredShipments(status);
 
     return undeliveredShipments
 }
@@ -18,8 +18,8 @@ const getShipmentsByCarrierIdService = async (userId , status ) => {
     return shipments
 }
 
-const updateShipmentService = async (shipmentId , date , userId , eventType , routeGeometry) => {
-    await updateShipment(shipmentId , date , userId , eventType , routeGeometry)
+const updateShipmentService = async (shipmentId , date , userId , eventType , routeGeometry , driveTime) => {
+    await updateShipment(shipmentId , date , userId , eventType , routeGeometry , driveTime)
 }
 
 const getShipmentCoordsByIdService = async (id) => {

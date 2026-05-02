@@ -40,10 +40,10 @@ const createShipment = async (originId, destinationId, carrier, equipmentType, s
     }
 }
 
-const getUndeliveredShipments = async () => {
+const getUndeliveredShipments = async (status) => {
     const countUndelivered = await pool.query(`
             SELECT COUNT(*) FROM shipments
-            WHERE status <> 'delivered'`)
+            WHERE status <> $1` , [status])
 
     return countUndelivered.rows[0];
 }
@@ -71,7 +71,8 @@ const getShipmentsByCarrierId = async (id , status ) => {
             shipments.requested_pickup_date,
             shipments.requested_delivery_date,
             shipments.actual_pickup_date,
-            shipments.actual_delivery_date
+            shipments.actual_delivery_date,
+            shipments.near_destination
 
             FROM shipments 
 
@@ -86,7 +87,7 @@ const getShipmentsByCarrierId = async (id , status ) => {
         return response.rows
 }
 
-const updateShipment = async (shipmentId , date , userId , eventType , routeGeometry) => {
+const updateShipment = async (shipmentId , date , userId , eventType , routeGeometry , driveTime) => {
     try{
         await pool.query('BEGIN')
 
@@ -107,11 +108,15 @@ const updateShipment = async (shipmentId , date , userId , eventType , routeGeom
                 ELSE actual_delivery_date
             END,
             route_geometry = CASE
-                WHEN $1 = 'routed' THEN $4
+                WHEN $1 = 'routed' THEN $4::jsonb
                 ELSE route_geometry
+            END,
+            route_time_seconds = CASE
+            WHEN $1 = 'routed' THEN $5
+                ELSE route_time_seconds
             END
             WHERE shipments.id = $3 
-            ` , [eventType , date , shipmentId , routeGeometry])
+            ` , [eventType , date , shipmentId , routeGeometry , driveTime])
 
         await pool.query(`
             UPDATE orders
