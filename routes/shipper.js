@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db/pool')
+const pool = require('../db/pool');
+const { requireAdmin, requireAuth } = require('../middleware/auth');
 const {getAllOrders , getOrderLineItems, getOrdersByStatus} = require('../controllers/orders.controller');
 const {getAllCarriers} = require('../controllers/carriers.controller');
 const {createShipment , getUndeliveredShipments} = require('../controllers/shipments.controller');
@@ -12,41 +13,41 @@ const {getCustomerLocationsByCompanyId , createCustomerLocation} = require('../c
 const {getCustomersByCompanyId} = require('../controllers/customers.controller')
 
 
-router.get('/companies/:id' , getCompanyId)
+router.get('/companies/:id' , requireAuth , getCompanyId)
 
-router.get('/users/:id' , getAllShipperUsers)
+router.get('/users/:id' , requireAuth, getAllShipperUsers)
 
-router.get('/shipper-locations/:id' , getShipperLocationId)
+router.get('/shipper-locations/:id' , requireAuth , getShipperLocationId)
 
-router.post('/shipper-users' , createShipperUser)
+router.post('/shipper-users' , requireAdmin , createShipperUser)
 
-router.patch('/shipper-users/:email' , updateNewShipperUser)
+router.patch('/shipper-users/:email' , requireAuth , updateNewShipperUser)
 
-router.get('/customers/:userId' , getCustomersByCompanyId)
+router.get('/customers/:userId' , requireAuth , getCustomersByCompanyId)
 
-router.get('/customer-locations/:userId' , getCustomerLocationsByCompanyId)
+router.get('/customer-locations/:userId' , requireAuth , getCustomerLocationsByCompanyId)
 
-router.post('/customer-locations/:userId' , createCustomerLocation)
+router.post('/customer-locations/:userId' , requireAdmin , createCustomerLocation)
 
-router.get('/locations/:id' , getAllShipperLocationsByCompanyId)
+router.get('/locations/:id' , requireAuth , getAllShipperLocationsByCompanyId)
 
-router.get('/orders' , getAllOrders);
+router.get('/orders' , requireAuth , getAllOrders);
 
-router.get('/orders/:id' , getOrdersByStatus)
+router.get('/orders/:id' , requireAuth , getOrdersByStatus)
 
-router.get('/orders/:orderId/line-items' , getOrderLineItems)
+router.get('/orders/:orderId/line-items' , requireAuth , getOrderLineItems)
 
-router.get('/carriers' , getAllCarriers)
+router.get('/carriers' , requireAuth , getAllCarriers)
 
-router.get('/shipments/:id' , getShipmentsByShipperLocation)
+router.get('/shipments/:id' , requireAuth , getShipmentsByShipperLocation)
 
-router.post('/shipments' , createShipment)
+router.post('/shipments' , requireAdmin , createShipment)
 
-router.post('/rates/:userId' , getRatesByShipperUser)
+router.post('/rates/:userId' , requireAuth , getRatesByShipperUser)
 
-router.get('/shipments' , getUndeliveredShipments)
+router.get('/shipments' , requireAuth , getUndeliveredShipments)
 
-router.get('/user/:id/contracts' , getContractsByShipperUser)
+router.get('/user/:id/contracts' , requireAuth , getContractsByShipperUser)
 
 router.post('/proxy/distance', async (req, res) => {
     try {
@@ -95,9 +96,9 @@ router.get('/equipment-types', async (req, res) => {
     }
 });
 
-router.delete('/contracts/:id' , deleteContract)
+router.delete('/contracts/:id' , requireAdmin , deleteContract)
 
-router.patch('/contracts/:id' , updateContractStatus)
+router.patch('/contracts/:id' , requireAdmin , updateContractStatus)
 
 
 module.exports = router;

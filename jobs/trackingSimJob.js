@@ -30,17 +30,11 @@ const startTrackingJob = () => {cron.schedule('*/1 * * * *' , async () => {
 
                 await pool.query(`
                     UPDATE shipments
-                    SET current_position = $1
+                    SET current_position = $1,
+                    near_destination = CASE WHEN $3 >= 0.95 THEN TRUE ELSE near_destination END
                     WHERE id = $2
-                    `,[JSON.stringify(currentPosition) , shipment.id]);
+                    `,[JSON.stringify(currentPosition) , shipment.id , fraction]);
 
-                if(fraction >= .95){
-                    await pool.query(`
-                        UPDATE shipments
-                        SET near_destination = TRUE
-                        WHERE id = $1
-                        `,[shipment.id])
-                }
             }
 
             console.log(`Updated tracking for ${shipments.length} shipments`);
