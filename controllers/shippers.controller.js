@@ -24,8 +24,7 @@ const getShipperLocationId = async(req , res) => {
 
 const getAllShipperLocationsByCompanyId = async (req , res) => {
     try{
-
-        const {id} = req.params;
+        const {id} = req.user;
         const companyId = await getCompanyIdService(id)
 
         const locations = await getAllShipperLocationsByCompanyIdService(companyId);
@@ -37,7 +36,7 @@ const getAllShipperLocationsByCompanyId = async (req , res) => {
 
 const getShipmentsByShipperLocation = async (req , res) => {
     try{
-        const { id } = req.params;
+        const { id } = req.user;
         const {status} = req.query;
         let shipperLocationId = await getShipperLocationIdService(id)
         let statusArray = status.split(',');

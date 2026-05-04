@@ -25,10 +25,10 @@ const getUndeliveredShipments = async (req, res) => {
 
 const getShipmentsByCarrierId = async (req, res) => {
     try {
-        const { userId } = req.params;
+        const { id } = req.user;
         const {status} = req.query;
         let statusArray = status.split(',')
-        const shipments = await getShipmentsByCarrierIdService(userId , statusArray)
+        const shipments = await getShipmentsByCarrierIdService(id , statusArray)
         res.status(200).json({ shipments })
     } catch (err) {
         res.status(500).json({ error: err.message })

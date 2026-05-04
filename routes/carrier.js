@@ -6,16 +6,16 @@ const {getShipmentsByCarrierId , updateShipment , getShipmentById} = require('..
 const {getPkgsByCarrierUser , createPkgByCarrierUser} = require('../controllers/packages.controller')
 const {createContract} = require('../controllers/contracts.controller')
 
-router.get('/shipments/:userId' , requireAuth , getShipmentsByCarrierId)
+router.get('/shipments' , requireAuth , getShipmentsByCarrierId)
 
 router.get('/shipments/geometry/:shipmentId' , requireAuth , getShipmentById)
 
 router.patch('/shipments/:shipmentId' , requireAdmin , updateShipment)
 
 
-router.get('/packages/:id' , requireAuth , getPkgsByCarrierUser)
+router.get('/packages' , requireAuth , getPkgsByCarrierUser)
 
-router.post('/packages/:id' , requireAdmin , createPkgByCarrierUser)
+router.post('/packages' , requireAdmin , createPkgByCarrierUser)
 
 router.get('/shippers' , requireAuth , async (req , res)=>{
     try{
@@ -31,6 +31,6 @@ router.get('/shippers' , requireAuth , async (req , res)=>{
     }
 })
 
-router.post('/contracts/:carrierUserId' , requireAdmin , createContract)
+router.post('/contracts' , requireAdmin , createContract)
 
 module.exports = router;

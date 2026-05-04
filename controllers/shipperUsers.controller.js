@@ -42,7 +42,7 @@ const updateNewShipperUser = async (req, res) => {
 
 const getAllShipperUsers = async (req , res) => {
     try{
-        const {id} = req.params
+        const {id} = req.user
         const companyId = await getCompanyIdService(id);
 
         const users = await getAllShipperUsersService(companyId)

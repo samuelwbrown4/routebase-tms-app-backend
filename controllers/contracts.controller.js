@@ -3,9 +3,9 @@ const { createContractService , getContractsByShipperUserService , deleteContrac
 
 const createContract = async (req , res) => {
     try{
-        const {carrierUserId} = req.params
+        const {id} = req.params
         const {shipperId , packageId , startDate , endDate} = req.body;
-        const contract = await createContractService(shipperId , carrierUserId , packageId , startDate , endDate);
+        const contract = await createContractService(shipperId , id , packageId , startDate , endDate);
 
         res.status(201).json({contract: contract})
     }catch (err) {
@@ -15,7 +15,7 @@ const createContract = async (req , res) => {
 
 const getContractsByShipperUser = async (req , res) =>{
     try{
-        const {id} = req.params;
+        const {id} = req.user;
         const {status} = req.query
         const contracts = await getContractsByShipperUserService(id , status)
         res.status(200).json({contracts})

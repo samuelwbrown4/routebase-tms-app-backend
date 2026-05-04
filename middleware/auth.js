@@ -26,8 +26,8 @@ function requireAuth(req, res, next) {
 
     const token = authHeader.split(' ')[1];
     try {
-      jws.verify(token, process.env.JWT_SECRET);
-       
+       const decoded = jws.verify(token, process.env.JWT_SECRET);
+       req.user = decoded
         return next();
     } catch {
         return res.status(401).json({ error: 'Invalid token' });

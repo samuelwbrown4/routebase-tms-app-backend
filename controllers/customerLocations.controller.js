@@ -4,8 +4,8 @@ const {createCustomerService} = require('../services/customers.service')
 
 const getCustomerLocationsByCompanyId = async (req , res) => {
     try{
-        let {userId} = req.params;
-        let companyId = await getCompanyIdService(userId)
+        const {id , role , client} = req.user
+        let companyId = await getCompanyIdService(id)
         let customerLocations = await getCustomerLocationsByCompanyIdService(companyId);
 
         res.status(200).json({customerLocations})
@@ -16,14 +16,14 @@ const getCustomerLocationsByCompanyId = async (req , res) => {
 
 const createCustomerLocation = async (req , res) => {
     try{
-        let {userId} = req.params;
+        const {id , role , client} = req.user
         let {existingCustomer} = req.query
         let {customerId , locName , locAddress , locCity , locState , locZip , locCountry , custName , custAddress , custCity , custState , custZip , custCountry} = req.body;
         let long = undefined
         let lat = undefined
         
         if(existingCustomer === false){
-            let companyId = await getCompanyIdService(userId)
+            let companyId = await getCompanyIdService(id)
             let customer = await createCustomerService(companyId , custName , custAddress , custCity , custState , custZip , custCountry)
             customerId = customer.id
         }

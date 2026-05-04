@@ -25,7 +25,7 @@ const getOrderLineItems = async (req , res) => {
 
 const getOrdersByStatus = async (req , res) => {
     try{
-        const {id} = req.params;
+        const {id} = req.user;
         const {status} = req.query;
         const shipperLocation = await getShipperLocationIdService(id)
         const orders = await getOrdersByStatusService(status , shipperLocation);

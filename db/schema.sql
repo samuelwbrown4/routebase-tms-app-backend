@@ -16,6 +16,23 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION shipment_status_validation()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.status = 'in_transit' AND OLD.status != 'routed'
+    THEN RAISE EXCEPTION 'Shipment must be routed before it is picked up.';
+    END IF;
+
+    IF NEW.status = 'delivered' AND OLD.status != 'in_transit'
+    THEN RAISE EXCEPTION 'Shipment must be picked up before it can be delivered.';
+    END IF;
+
+    IF NEW.actual_delivery_date < transit_start_time
+    THEN RAISE EXCEPTION 'Delivery date can not be before pickup date';
+    END IF;
+END;
+$$ LANGUAGE plpgsql
+
 CREATE TABLE companies (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -169,6 +186,11 @@ BEFORE UPDATE ON shipments
 FOR EACH ROW
 EXECUTE FUNCTION set_transit_start_time();
 
+CREATE TRIGGER trigger_shipment_status_validation
+BEFORE UPDATE ON shipments
+FOR EACH ROW
+EXACUTE FUNCTION shipment_status_validation();
+
 CREATE TABLE orders (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     customer_id UUID NOT NULL,
@@ -245,5 +267,25 @@ CREATE TABLE contracts (
     CONSTRAINT fk_carrier_id FOREIGN KEY (carrier_id) REFERENCES carriers(id),
     CONSTRAINT fk_package_id FOREIGN KEY (package_id) REFERENCES rate_packages(id)
 );
+
+CREATE TABLE conversations (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    shipment_id UUID NOT NULL,
+    carrier_id UUID NOT NULL,
+    company_id UUID NOT NULL,
+    archived BOOLEAN DEFAULT FALSE,
+    CONSTRAINT fk_shipment_id FOREIGN KEY (shipment_id) REFERENCES shipments(id),
+    CONSTRAINT fk_carrier_id FOREIGN KEY (carrier_id) REFERENCES carriers(id),
+    CONSTRAINT fk_company_id FOREIGN KEY (company_id) REFERENCES companies(id)
+)
+
+CREATE TABLE messages (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    text VARCHAR(500) NOT NULL,
+    time_sent TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    conversation_id UUID NOT NULL,
+    sender VARCHAR(20) NOT NULL,
+    CONSTRAINT fk_conversation_id FOREIGN KEY (conversation_id) REFERENCES conversations(id)
+)
 
 

@@ -15,7 +15,7 @@ const {getCustomersByCompanyId} = require('../controllers/customers.controller')
 
 router.get('/companies/:id' , requireAuth , getCompanyId)
 
-router.get('/users/:id' , requireAuth, getAllShipperUsers)
+router.get('/users' , requireAuth, getAllShipperUsers)
 
 router.get('/shipper-locations/:id' , requireAuth , getShipperLocationId)
 
@@ -23,31 +23,27 @@ router.post('/shipper-users' , requireAdmin , createShipperUser)
 
 router.patch('/shipper-users/:email' , requireAuth , updateNewShipperUser)
 
-router.get('/customers/:userId' , requireAuth , getCustomersByCompanyId)
+router.get('/customers' , requireAuth , getCustomersByCompanyId)
 
-router.get('/customer-locations/:userId' , requireAuth , getCustomerLocationsByCompanyId)
+router.get('/customer-locations' , requireAuth , getCustomerLocationsByCompanyId)
 
-router.post('/customer-locations/:userId' , requireAdmin , createCustomerLocation)
+router.post('/customer-locations' , requireAdmin , createCustomerLocation)
 
-router.get('/locations/:id' , requireAuth , getAllShipperLocationsByCompanyId)
+router.get('/locations' , requireAuth , getAllShipperLocationsByCompanyId)
 
-router.get('/orders' , requireAuth , getAllOrders);
-
-router.get('/orders/:id' , requireAuth , getOrdersByStatus)
+router.get('/orders' , requireAuth , getOrdersByStatus)
 
 router.get('/orders/:orderId/line-items' , requireAuth , getOrderLineItems)
 
 router.get('/carriers' , requireAuth , getAllCarriers)
 
-router.get('/shipments/:id' , requireAuth , getShipmentsByShipperLocation)
-
 router.post('/shipments' , requireAdmin , createShipment)
 
-router.post('/rates/:userId' , requireAuth , getRatesByShipperUser)
+router.post('/rates' , requireAuth , getRatesByShipperUser)
 
-router.get('/shipments' , requireAuth , getUndeliveredShipments)
+router.get('/shipments' , requireAuth , getShipmentsByShipperLocation)
 
-router.get('/user/:id/contracts' , requireAuth , getContractsByShipperUser)
+router.get('/contracts' , requireAuth , getContractsByShipperUser)
 
 router.post('/proxy/distance', async (req, res) => {
     try {
