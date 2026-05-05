@@ -76,4 +76,5 @@ const getShipmentById = async (req , res) => {
     }
 }
 
+
 module.exports = { createShipment, getUndeliveredShipments, getShipmentsByCarrierId, updateShipment , getShipmentById }

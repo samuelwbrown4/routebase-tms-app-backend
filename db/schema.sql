@@ -27,11 +27,12 @@ BEGIN
     THEN RAISE EXCEPTION 'Shipment must be picked up before it can be delivered.';
     END IF;
 
-    IF NEW.actual_delivery_date < transit_start_time
+    IF NEW.actual_delivery_date < OLD.transit_start_time
     THEN RAISE EXCEPTION 'Delivery date can not be before pickup date';
     END IF;
+    RETURN NEW;
 END;
-$$ LANGUAGE plpgsql
+$$ LANGUAGE plpgsql;
 
 CREATE TABLE companies (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -189,7 +190,7 @@ EXECUTE FUNCTION set_transit_start_time();
 CREATE TRIGGER trigger_shipment_status_validation
 BEFORE UPDATE ON shipments
 FOR EACH ROW
-EXACUTE FUNCTION shipment_status_validation();
+EXECUTE FUNCTION shipment_status_validation();
 
 CREATE TABLE orders (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -273,11 +274,13 @@ CREATE TABLE conversations (
     shipment_id UUID NOT NULL,
     carrier_id UUID NOT NULL,
     company_id UUID NOT NULL,
+    shipper_location_id UUID NOT NULL,
     archived BOOLEAN DEFAULT FALSE,
     CONSTRAINT fk_shipment_id FOREIGN KEY (shipment_id) REFERENCES shipments(id),
     CONSTRAINT fk_carrier_id FOREIGN KEY (carrier_id) REFERENCES carriers(id),
+    CONSTRAINT fk_shipper_location_id FOREIGN KEY (shipper_location_id) REFERENCES shipper_locations(id),
     CONSTRAINT fk_company_id FOREIGN KEY (company_id) REFERENCES companies(id)
-)
+);
 
 CREATE TABLE messages (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -286,6 +289,6 @@ CREATE TABLE messages (
     conversation_id UUID NOT NULL,
     sender VARCHAR(20) NOT NULL,
     CONSTRAINT fk_conversation_id FOREIGN KEY (conversation_id) REFERENCES conversations(id)
-)
+);
 
 

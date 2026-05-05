@@ -15,6 +15,16 @@ const getCompanyId = async (id) => {
         return companyId.rows[0].id
 }
 
+const getCompanyIdByShipperLoc = async (id) => {
+    const companyId = await pool.query(`
+        SELECT shipper_locations.company_id
+        FROM shipper_locations
+        WHERE shipper_locations.id = $1
+        ` , [id]);
+
+        return companyId.rows[0].company_id
+}
+
 const getShipperLocationId = async (id) => {
     const shipperLocationId = await pool.query(`
         SELECT shipper_locations.id
@@ -79,4 +89,4 @@ const getShipmentsByShipperLocation = async (id , status ) => {
         return response.rows
 }
 
-module.exports = {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId , getShipmentsByShipperLocation}
+module.exports = {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId , getShipmentsByShipperLocation , getCompanyIdByShipperLoc}

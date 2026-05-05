@@ -1,8 +1,14 @@
-const {getAllCarriers} =  require('../repos/carriers.repo')
+const {getAllCarriers , getCarrierIdByUser} =  require('../repos/carriers.repo')
 
 const getAllCarriersService = async () => {
     const carriers = await getAllCarriers();
     return carriers;
 }
 
-module.exports = {getAllCarriersService}
+const getCarrierIdByUserService = async (id) => {
+    const carrierId = await getCarrierIdByUser(id);
+
+    return carrierId;
+}
+
+module.exports = {getAllCarriersService , getCarrierIdByUserService}

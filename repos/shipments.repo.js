@@ -168,4 +168,28 @@ const getShipmentById = async (id) => {
         return shipment.rows[0]
 }
 
-module.exports = {createShipment , getUndeliveredShipments , getShipmentsByCarrierId, updateShipment , getShipmentCoordsById , getShipmentById}
+const getCarrierShipmentByShipmentNumber = async (shipmentNumber , id) => {
+    let shipment = await pool.query(`
+        SELECT * FROM shipments WHERE shipment_number = $1 AND shipments.carrier_id = $2
+        `,[shipmentNumber , id])
+
+        return shipment.rows[0]
+}
+
+const getShipperShipmentByShipmentNumber = async (shipmentNumber) => {
+    let shipment = await pool.query(`
+        SELECT * FROM shipments WHERE shipment_number = $1 AND shipments.company_id = $2
+        `,[shipmentNumber , id])
+
+        return shipment.rows[0]
+}
+
+const getShipmentByShipmentNumber = async (shipmentNumber) => {
+    let shipment = await pool.query(`
+        SELECT * FROM shipments WHERE shipment_number = $1
+        `,[shipmentNumber])
+
+        return shipment.rows[0]
+}
+
+module.exports = {createShipment , getUndeliveredShipments , getShipmentsByCarrierId, updateShipment , getShipmentCoordsById , getShipmentById , getCarrierShipmentByShipmentNumber , getShipperShipmentByShipmentNumber , getShipmentByShipmentNumber}

@@ -12,17 +12,16 @@ app.use(cors({
     origin: 'http://localhost:5173'
 }))
 
-const shipperRoutes = require('./routes/shipperRoutes');
+
 const userRoutes = require('./routes/users');
-const carrierRoutes = require('./routes/carrierRoutes')
-const shipper = require('./routes/shipper')
-const carrier = require('./routes/carrier')
+const shipper = require('./routes/shipper');
+const carrier = require('./routes/carrier');
+const shared = require('./routes/shared');
 
 app.use('/api/users' , userRoutes);
-app.use('/api/shipper-user' , shipperRoutes);
-app.use('/api/carrier-user' , carrierRoutes);
-app.use('/api/shipper' , shipper)
-app.use('/api/carrier' , carrier)
+app.use('/api/shipper' , shipper);
+app.use('/api/carrier' , carrier);
+app.use('/api/shared' , shared);
 
 app.get('/' , (req , res) => {
     res.send('TMS app up and running!')
