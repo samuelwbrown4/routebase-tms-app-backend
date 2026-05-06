@@ -5,6 +5,7 @@ const getCarrierConversations = async (id) => {
         SELECT 
             conversations.id AS conv_id,
             shipment_id,
+            shipments.shipment_number AS shipment_number,
             carriers.name AS carrier_name,
             companies.name AS company_name,
             shipper_locations.name AS shipper_location_name,
@@ -26,9 +27,11 @@ const getCarrierConversations = async (id) => {
 
         JOIN shipper_locations ON conversations.shipper_location_id = shipper_locations.id
 
+        JOIN shipments ON conversations.shipment_id = shipments.id
+
         WHERE conversations.carrier_id = $1
 
-        GROUP BY conversations.id, shipment_id, carrier_name , company_name , shipper_location_name
+        GROUP BY conversations.id, shipment_id, carrier_name , company_name , shipper_location_name, shipments.shipment_number
         `,[id]);
 
         return conversations.rows
@@ -39,6 +42,7 @@ const getShipperConversations = async (id) => {
         SELECT 
             conversations.id AS conv_id,
             shipment_id,
+            shipments.shipment_number AS shipment_number,
             carriers.name AS carrier_name,
             companies.name AS company_name,
             shipper_locations.name AS shipper_location_name,
@@ -60,9 +64,11 @@ const getShipperConversations = async (id) => {
 
         JOIN shipper_locations ON conversations.shipper_location_id = shipper_locations.id
 
+        JOIN shipments ON conversations.shipment_id = shipments.id
+
         WHERE conversations.shipper_location_id = $1
 
-        GROUP BY conversations.id, shipment_id, carrier_name , company_name , shipper_location_name
+        GROUP BY conversations.id, shipment_id, carrier_name , company_name , shipper_location_name, shipments.shipment_number
         `,[id]);
 
         return conversations.rows
