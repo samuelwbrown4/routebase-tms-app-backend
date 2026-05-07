@@ -288,6 +288,7 @@ CREATE TABLE messages (
     time_sent TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     conversation_id UUID NOT NULL,
     sender VARCHAR(20) NOT NULL,
+    read_by_receiver BOOLEAN DEFAULT FALSE,
     CONSTRAINT fk_conversation_id FOREIGN KEY (conversation_id) REFERENCES conversations(id)
 );
 

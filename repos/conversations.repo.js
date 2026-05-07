@@ -1,6 +1,6 @@
 const pool = require('../db/pool');
 
-const getCarrierConversations = async (id) => {
+const getCarrierConversations = async (id , statusArray , sender) => {
     const conversations = await pool.query(`
         SELECT 
             conversations.id AS conv_id,
@@ -13,7 +13,8 @@ const getCarrierConversations = async (id) => {
                 json_build_object(
                     'text' , messages.text,
                     'sender' , messages.sender,
-                    'time_sent' , messages.time_sent
+                    'time_sent' , messages.time_sent,
+                    'read_by_receiver' , messages.read_by_receiver
                 )ORDER BY time_sent
             )AS messages
 
@@ -30,14 +31,15 @@ const getCarrierConversations = async (id) => {
         JOIN shipments ON conversations.shipment_id = shipments.id
 
         WHERE conversations.carrier_id = $1
+        AND (messages.read_by_receiver = ANY($2) AND messages.sender = ANY($3))
 
         GROUP BY conversations.id, shipment_id, carrier_name , company_name , shipper_location_name, shipments.shipment_number
-        `,[id]);
+        `,[id , statusArray , sender]);
 
         return conversations.rows
 };
 
-const getShipperConversations = async (id) => {
+const getShipperConversations = async (id , statusArray , sender) => {
     const conversations = await pool.query(`
         SELECT 
             conversations.id AS conv_id,
@@ -50,7 +52,8 @@ const getShipperConversations = async (id) => {
                 json_build_object(
                     'text' , messages.text,
                     'sender' , messages.sender,
-                    'time_sent' , messages.time_sent
+                    'time_sent' , messages.time_sent,
+                    'read_by_receiver' , messages.read_by_receiver
                 )ORDER BY time_sent
             )AS messages
 
@@ -67,9 +70,10 @@ const getShipperConversations = async (id) => {
         JOIN shipments ON conversations.shipment_id = shipments.id
 
         WHERE conversations.shipper_location_id = $1
+         AND (messages.read_by_receiver = ANY($2) AND messages.sender = ANY($3))
 
         GROUP BY conversations.id, shipment_id, carrier_name , company_name , shipper_location_name, shipments.shipment_number
-        `,[id]);
+        `,[id , statusArray , sender]);
 
         return conversations.rows
 }
@@ -127,4 +131,33 @@ const checkExistingConversation = async (shipmentId) => {
         return existing
 }
 
-module.exports = {getCarrierConversations , getShipperConversations , createConversation , createMessage , checkExistingConversation}
+const getMessages = async (sender , shipperLocId , isRead) => {
+    let unread = await pool.query(`
+        SELECT
+            conversations.id AS convo_id,
+            json_agg(
+                json_build_obj(
+                    '
+                )
+            )
+
+        FROM conversations
+
+        WHERE conversations.shipper_location_id =$1 AND messages.read_by_receiver = $2
+        AND messages.sender <> $2
+        `,[shipperLocId , isRead , sender]);
+
+        return unread.rows
+}
+
+const readMessages = async (conversationId , sender) => {
+    let updatedConvos = await pool.query(`
+        UPDATE messages
+        SET read_by_receiver = true
+        WHERE sender <> $1 AND messages.conversation_id = $2
+        `,[sender , conversationId])
+
+        return updatedConvos.rows
+}
+
+module.exports = {getCarrierConversations , getShipperConversations , createConversation , createMessage , checkExistingConversation , getMessages , readMessages}

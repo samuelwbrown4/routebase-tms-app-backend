@@ -1,13 +1,13 @@
-const {getCarrierConversations , getShipperConversations , createConversation , createMessage , checkExistingConversation} = require('../repos/conversations.repo');
+const {getCarrierConversations , getShipperConversations , createConversation , createMessage , checkExistingConversation , readMessages } = require('../repos/conversations.repo');
 
-const getCarrierConversationsService = async (id) => {
-    const conversations = getCarrierConversations(id);
+const getCarrierConversationsService = async (id , statusArray , sender) => {
+    const conversations = getCarrierConversations(id , statusArray , sender);
 
     return conversations;
 }
 
-const getShipperConversationsService = async (id) => {
-    const conversations = getShipperConversations(id);
+const getShipperConversationsService = async (id , statusArray , sender) => {
+    const conversations = getShipperConversations(id , statusArray , sender);
 
     return conversations;
 }
@@ -30,4 +30,10 @@ const createMessageService = async (conversationId , text , sender) => {
     return message;
 }
 
-module.exports = {getCarrierConversationsService , getShipperConversationsService , createConversationService , createMessageService , checkExistingConversationService}
+const readMessagesService = async (conversationId , sender) => {
+    const updatedConvos = await readMessages(conversationId , sender)
+
+    return updatedConvos;
+}
+
+module.exports = {getCarrierConversationsService , getShipperConversationsService , createConversationService , createMessageService , checkExistingConversationService , readMessagesService}

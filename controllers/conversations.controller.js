@@ -1,4 +1,4 @@
-const { getCarrierConversationsService, getShipperConversationsService, createConversationService, createMessageService, checkExistingConversationService } = require('../services/conversations.service')
+const { getCarrierConversationsService, getShipperConversationsService, createConversationService, createMessageService, checkExistingConversationService , readMessagesService } = require('../services/conversations.service')
 
 const { getCompanyIdService, getCompanyIdByShipperLocService, getShipperLocationIdService } = require('../services/shippers.service')
 
@@ -8,15 +8,18 @@ const { getShipmentByShipmentNumberService } = require('../services/shipments.se
 const getConversations = async (req, res) => {
     try {
         const { id, client } = req.user;
+        const {status , sender} = req.query;
+        const statusArray = status.split(',');
+        const senderArray = sender.split(',')
 
         let conversations = []
 
         if (client === 'carrier') {
             const carrierId = await getCarrierIdByUserService(id)
-            conversations = await getCarrierConversationsService(carrierId)
+            conversations = await getCarrierConversationsService(carrierId , statusArray , senderArray)
         } else {
             const shipperLocId = await getShipperLocationIdService(id)
-            conversations = await getShipperConversationsService(shipperLocId)
+            conversations = await getShipperConversationsService(shipperLocId , statusArray , senderArray)
         }
         res.status(200).json({ conversations })
     } catch (err) {
@@ -66,4 +69,17 @@ const createMessage = async (req, res) => {
     }
 }
 
-module.exports = { getConversations, createConversation, createMessage }
+const readMessages = async (req , res) => {
+    try{
+        const {client} = req.user
+        const {conversationId} = req.params
+
+        let readMessages = await readMessagesService(conversationId , client)
+
+        res.status(200).json({readMessages})
+    }catch(err){
+        res.status(500).json({error: err.message})
+    }
+}
+
+module.exports = { getConversations, createConversation, createMessage , readMessages }
