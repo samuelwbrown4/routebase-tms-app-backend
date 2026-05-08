@@ -19,7 +19,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION shipment_status_validation()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.status = 'in_transit' AND OLD.status != 'routed'
+    IF NEW.status = 'in_transit' AND OLD.status != 'routed' AND OLD.status != 'in_transit'
     THEN RAISE EXCEPTION 'Shipment must be routed before it is picked up.';
     END IF;
 
