@@ -42,6 +42,8 @@ const updateShipment = async (req, res) => {
         let routeGeometry = undefined
         let driveTime = undefined
 
+        console.log('date', date);
+
         if (eventType === 'routed') {
             let coords = await getShipmentCoordsByIdService(shipmentId)
 
