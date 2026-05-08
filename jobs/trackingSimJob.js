@@ -1,7 +1,7 @@
 const cron = require('node-cron');
 const pool = require('../db/pool');
 
-const startTrackingJob = () => {cron.schedule('*/15 * * * *' , async () => {
+const startTrackingJob = () => {cron.schedule('*/1 * * * *' , async () => {
     console.log('Running shipment tracking update...');
     try{
         let result = await pool.query(`
