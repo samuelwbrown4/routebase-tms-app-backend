@@ -4,7 +4,7 @@ const pool = require('../db/pool');
 const { requireAdmin, requireAuth } = require('../middleware/auth');
 const {getAllOrders , getOrderLineItems, getOrdersByStatus} = require('../controllers/orders.controller');
 const {getAllCarriers} = require('../controllers/carriers.controller');
-const {createShipment , getUndeliveredShipments , getShipmentById} = require('../controllers/shipments.controller');
+const {createShipment , getUndeliveredShipments , getShipmentById , shipmentSearch} = require('../controllers/shipments.controller');
 const {getRatesByShipperUser} = require('../controllers/rates.controller')
 const {getContractsByShipperUser , deleteContract ,updateContractStatus} = require('../controllers/contracts.controller')
 const {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId , getShipmentsByShipperLocation} = require('../controllers/shippers.controller')
@@ -42,6 +42,8 @@ router.post('/shipments' , requireAdmin , createShipment)
 router.post('/rates' , requireAuth , getRatesByShipperUser)
 
 router.get('/shipments' , requireAuth , getShipmentsByShipperLocation)
+
+router.get('/shipments/search' , requireAuth , shipmentSearch)
 
 router.get('/shipments/:shipmentId' , requireAuth , getShipmentById)
 

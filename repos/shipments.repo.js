@@ -192,4 +192,18 @@ const getShipmentByShipmentNumber = async (shipmentNumber) => {
         return shipment.rows[0]
 }
 
-module.exports = {createShipment , getUndeliveredShipments , getShipmentsByCarrierId, updateShipment , getShipmentCoordsById , getShipmentById , getCarrierShipmentByShipmentNumber , getShipperShipmentByShipmentNumber , getShipmentByShipmentNumber}
+const shipmentSearch = async (id , searchValue) => {
+    let shipments = await pool.query(`
+        SELECT
+            id,
+            shipment_number
+        FROM
+            shipments
+        WHERE
+            shipments.origin_id = $1 AND LOWER(shipments.shipment_number) LIKE $2
+        `, [id , searchValue]);
+
+        return shipments.rows;
+}
+
+module.exports = {createShipment , getUndeliveredShipments , getShipmentsByCarrierId, updateShipment , getShipmentCoordsById , getShipmentById , getCarrierShipmentByShipmentNumber , getShipperShipmentByShipmentNumber , getShipmentByShipmentNumber , shipmentSearch}

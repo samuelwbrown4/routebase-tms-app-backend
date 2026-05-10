@@ -1,4 +1,6 @@
-const { createShipmentService, getUndeliveredShipmentsService, getShipmentsByCarrierIdService, updateShipmentService, getShipmentCoordsByIdService , getShipmentByIdService } = require('../services/shipments.service')
+const { createShipmentService, getUndeliveredShipmentsService, getShipmentsByCarrierIdService, updateShipmentService, getShipmentCoordsByIdService , getShipmentByIdService , shipmentSearchService } = require('../services/shipments.service')
+
+const {getShipperLocationIdService} = require('../services/shippers.service')
 
 const createShipment = async (req, res) => {
     try {
@@ -78,5 +80,20 @@ const getShipmentById = async (req , res) => {
     }
 }
 
+const shipmentSearch = async (req , res) => {
+    try{
+        const {id} = req.user
+        const {value} = req.query
+        const modSearchValue = '%' + value.toLowerCase() + '%'
 
-module.exports = { createShipment, getUndeliveredShipments, getShipmentsByCarrierId, updateShipment , getShipmentById }
+        const shipperLocation = await getShipperLocationIdService(id)
+
+        const shipments = await shipmentSearchService(shipperLocation , modSearchValue)
+
+        res.status(200).json({shipments})
+    }catch(err){
+        res.status(500).json({error: err.message})
+    }
+}
+
+module.exports = { createShipment, getUndeliveredShipments, getShipmentsByCarrierId, updateShipment , getShipmentById , shipmentSearch }

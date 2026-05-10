@@ -1,4 +1,4 @@
-const {createShipment , getUndeliveredShipments , getShipmentsByCarrierId , updateShipment , getShipmentCoordsById , getShipmentById , getCarrierShipmentByShipmentNumber , getShipperShipmentByShipmentNumber , getShipmentByShipmentNumber} = require('../repos/shipments.repo')
+const {createShipment , getUndeliveredShipments , getShipmentsByCarrierId , updateShipment , getShipmentCoordsById , getShipmentById , getCarrierShipmentByShipmentNumber , getShipperShipmentByShipmentNumber , getShipmentByShipmentNumber , shipmentSearch} = require('../repos/shipments.repo')
 
 const createShipmentService = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId,  orders) => {
     const shipment = await createShipment(originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders);
@@ -50,4 +50,10 @@ const getShipmentByShipmentNumberService = async (shipmentNumber) => {
     return shipment
 }
 
-module.exports = {createShipmentService , getUndeliveredShipmentsService , getShipmentsByCarrierIdService , updateShipmentService , getShipmentCoordsByIdService , getShipmentByIdService , getCarrierShipmentByShipmentNumberService , getShipperShipmentByShipmentNumberService , getShipmentByShipmentNumberService}
+const shipmentSearchService = async (id , searchValue) => {
+    let shipments = await shipmentSearch(id , searchValue);
+
+    return shipments;
+}
+
+module.exports = {createShipmentService , getUndeliveredShipmentsService , getShipmentsByCarrierIdService , updateShipmentService , getShipmentCoordsByIdService , getShipmentByIdService , getCarrierShipmentByShipmentNumberService , getShipperShipmentByShipmentNumberService , getShipmentByShipmentNumberService , shipmentSearchService}
