@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer');
 
 async function generatePdf(html) {
     const browser = await puppeteer.launch({
-        executablePath: process.env.NODE_ENV === 'production' ? '/usr/bin/chromium-browser' : undefined,
+        executablePath: process.env.NODE_ENV === 'production' ? '/usr/bin/google-chrome' : undefined,
         args: process.env.NODE_ENV === 'production'
             ? ['--no-sandbox', '--disable-setuid-sandbox']
             : [],
