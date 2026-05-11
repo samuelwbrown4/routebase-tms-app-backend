@@ -11,6 +11,7 @@ const {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId ,
 const {createShipperUser , updateNewShipperUser , getAllShipperUsers} = require('../controllers/shipperUsers.controller')
 const {getCustomerLocationsByCompanyId , createCustomerLocation} = require('../controllers/customerLocations.controller')
 const {getCustomersByCompanyId} = require('../controllers/customers.controller')
+const {generateBol} = require('../controllers/documents.controller')
 
 
 router.get('/companies/:id' , requireAuth , getCompanyId)
@@ -48,6 +49,8 @@ router.get('/shipments/search' , requireAuth , shipmentSearch)
 router.get('/shipments/:shipmentId' , requireAuth , getShipmentById)
 
 router.get('/contracts' , requireAuth , getContractsByShipperUser)
+
+router.get('/documents/:shipmentId/bol' , requireAuth , generateBol)
 
 router.post('/proxy/distance', async (req, res) => {
     try {

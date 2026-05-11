@@ -1,7 +1,7 @@
 const pool = require('../db/pool');
 
 const createShipment = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders) => {
-        try {
+    try {
 
         await pool.query('BEGIN')
 
@@ -49,8 +49,8 @@ const getUndeliveredShipments = async (status) => {
 }
 
 
-const getShipmentsByCarrierId = async (id , status ) => {
-            const response = await pool.query(`
+const getShipmentsByCarrierId = async (id, status) => {
+    const response = await pool.query(`
             SELECT 
             
             shipments.id,
@@ -82,13 +82,13 @@ const getShipmentsByCarrierId = async (id , status ) => {
 
             WHERE carrier_users.id = $1 
             AND shipments.status = ANY($2)
-            ` , [id , status ])
+            ` , [id, status])
 
-        return response.rows
+    return response.rows
 }
 
-const updateShipment = async (shipmentId , date , userId , eventType , routeGeometry , driveTime) => {
-    try{
+const updateShipment = async (shipmentId, date, userId, eventType, routeGeometry, driveTime) => {
+    try {
         await pool.query('BEGIN')
 
         await pool.query(`
@@ -116,7 +116,7 @@ const updateShipment = async (shipmentId , date , userId , eventType , routeGeom
                 ELSE route_time_seconds
             END
             WHERE shipments.id = $3 
-            ` , [eventType , date , shipmentId , routeGeometry , driveTime])
+            ` , [eventType, date, shipmentId, routeGeometry, driveTime])
 
         await pool.query(`
             UPDATE orders
@@ -126,17 +126,17 @@ const updateShipment = async (shipmentId , date , userId , eventType , routeGeom
                 ELSE order_status
             END
             WHERE orders.id IN(SELECT order_id from shipment_orders WHERE shipment_orders.shipment_id = $2)
-            ` , [eventType , shipmentId])
+            ` , [eventType, shipmentId])
 
 
         await pool.query(`
             INSERT INTO shipment_events (shipment_id , event_type , user_id)
             VALUES ($1 , $2 , $3)
             RETURNING *
-            ` , [shipmentId , eventType , userId])
+            ` , [shipmentId, eventType, userId])
 
         await pool.query('COMMIT')
-    }catch(err){
+    } catch (err) {
         await pool.query('ROLLBACK')
         throw err
     }
@@ -155,55 +155,127 @@ const getShipmentCoordsById = async (id) => {
         JOIN customer_locations ON customer_locations.id = shipments.destination_id
 
         WHERE shipments.id = $1
-        `,[id])
+        `, [id])
 
     return coords.rows[0]
 }
 
 const getShipmentById = async (id) => {
     let shipment = await pool.query(`
-        SELECT * FROM shipments WHERE id = $1
-        `,[id])
+        SELECT 
+        
+         shipments.id,
+            shipments.shipment_number,
+            carriers.name AS carrier_name,
+            carriers.scac AS carrier_scac,
+            shipper_locations.name AS origin,
+            shipper_locations.address AS origin_address,
+            shipper_locations.city AS origin_city,
+            shipper_locations.state AS origin_state,
+            shipper_locations.zip_code AS origin_zip,
+            customer_locations.name AS destination,
+            customer_locations.address AS destination_address,
+            customer_locations.city AS destination_city,
+            customer_locations.state AS destination_state,
+            customer_locations.zip_code AS destination_zip,
+            shipments.equipment_type_id,
+            shipments.status,
+            shipments.total_weight,
+            json_agg(
+                json_build_object(
+                    'order_id', orders.id,
+                    'order_number', orders.order_number,
+                    'customer_po', orders.customer_po_number,
+                    'weight' , (SELECT SUM(total_weight_lbs) FROM order_line_items WHERE order_line_items.order_id = orders.id),
+                    'line_items', (
+                        SELECT json_agg(
+                            json_build_object(
+                            'product_id', order_line_items.id,
+                                'material_number', products.material_number,
+                                'description', products.description,
+                                'quantity', order_line_items.quantity,
+                                'weight' , order_line_items.total_weight_lbs ,
+                                'freight_class', products.freight_class
+                            )
+                        )
+                        FROM order_line_items
+                        JOIN products ON order_line_items.product_id = products.id
+                        WHERE order_line_items.order_id = orders.id
+                        
+                    )
+                )
+            ) AS orders
+        
+        FROM shipments 
 
-        return shipment.rows[0]
+        JOIN shipper_locations ON shipments.origin_id = shipper_locations.id
+        JOIN carriers ON shipments.carrier_id = carriers.id
+        JOIN customer_locations ON customer_locations.id = shipments.destination_id
+        JOIN shipment_orders ON shipment_orders.shipment_id = shipments.id
+        JOIN orders ON orders.id = shipment_orders.order_id
+        
+        WHERE shipments.id = $1
+
+        GROUP BY
+
+            shipments.id,
+            shipments.shipment_number,
+            carriers.name,
+            carriers.scac,
+            shipper_locations.name,
+            shipper_locations.address,
+            shipper_locations.city,
+            shipper_locations.state,
+            shipper_locations.zip_code,
+            customer_locations.name,
+            customer_locations.address,
+            customer_locations.city,
+            customer_locations.state,
+            customer_locations.zip_code,
+            shipments.equipment_type_id,
+            shipments.status,
+            shipments.total_weight
+        `, [id])
+
+    return shipment.rows[0]
 }
 
-const getCarrierShipmentByShipmentNumber = async (shipmentNumber , id) => {
+const getCarrierShipmentByShipmentNumber = async (shipmentNumber, id) => {
     let shipment = await pool.query(`
         SELECT * FROM shipments WHERE shipment_number = $1 AND shipments.carrier_id = $2
-        `,[shipmentNumber , id])
+        `, [shipmentNumber, id])
 
-        return shipment.rows[0]
+    return shipment.rows[0]
 }
 
 const getShipperShipmentByShipmentNumber = async (shipmentNumber) => {
     let shipment = await pool.query(`
         SELECT * FROM shipments WHERE shipment_number = $1 AND shipments.company_id = $2
-        `,[shipmentNumber , id])
+        `, [shipmentNumber, id])
 
-        return shipment.rows[0]
+    return shipment.rows[0]
 }
 
 const getShipmentByShipmentNumber = async (shipmentNumber) => {
     let shipment = await pool.query(`
         SELECT * FROM shipments WHERE shipment_number = $1
-        `,[shipmentNumber])
+        `, [shipmentNumber])
 
-        return shipment.rows[0]
+    return shipment.rows[0]
 }
 
-const shipmentSearch = async (id , searchValue) => {
+const shipmentSearch = async (id, searchValue) => {
     let shipments = await pool.query(`
         SELECT
-            id,
-            shipment_number
+            shipments.id,
+            shipments.shipment_number,
         FROM
             shipments
         WHERE
             shipments.origin_id = $1 AND LOWER(shipments.shipment_number) LIKE $2
-        `, [id , searchValue]);
+        `, [id, searchValue]);
 
-        return shipments.rows;
+    return shipments.rows;
 }
 
-module.exports = {createShipment , getUndeliveredShipments , getShipmentsByCarrierId, updateShipment , getShipmentCoordsById , getShipmentById , getCarrierShipmentByShipmentNumber , getShipperShipmentByShipmentNumber , getShipmentByShipmentNumber , shipmentSearch}
+module.exports = { createShipment, getUndeliveredShipments, getShipmentsByCarrierId, updateShipment, getShipmentCoordsById, getShipmentById, getCarrierShipmentByShipmentNumber, getShipperShipmentByShipmentNumber, getShipmentByShipmentNumber, shipmentSearch }
