@@ -268,7 +268,7 @@ const shipmentSearch = async (id, searchValue) => {
     let shipments = await pool.query(`
         SELECT
             shipments.id,
-            shipments.shipment_number,
+            shipments.shipment_number
         FROM
             shipments
         WHERE
