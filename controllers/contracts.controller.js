@@ -3,9 +3,11 @@ const { createContractService , getContractsByShipperUserService , deleteContrac
 
 const createContract = async (req , res) => {
     try{
-        const {id} = req.params
+        const {id} = req.user
         const {shipperId , packageId , startDate , endDate} = req.body;
+        console.log('hit contract creation controller')
         const contract = await createContractService(shipperId , id , packageId , startDate , endDate);
+        console.log('Contract created: ' , contract)
 
         res.status(201).json({contract: contract})
     }catch (err) {

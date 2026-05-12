@@ -3,7 +3,11 @@ const {createContract , getContractsByShipperUser , contractExists , deleteContr
 
 
 const createContractService = async (shipperId , carrierUserId , packageId , startDate , endDate) => {
+
+    console.log('carrier id: ', carrierUserId)
     const carrierId = await getCarrierIdByUser(carrierUserId)
+
+    
 
     if(!carrierId){
         return error
@@ -11,9 +15,9 @@ const createContractService = async (shipperId , carrierUserId , packageId , sta
 
     const exists = await contractExists(carrierId , shipperId)
 
-    if(exists){
-        return error
-    }
+    //if(exists){
+    //    return error
+    //}
 
     const contract = await createContract(shipperId , carrierId , packageId , startDate , endDate);
 

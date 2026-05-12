@@ -17,7 +17,7 @@ const createContract = async (shipperId , carrierId , packageId , contractStart 
         RETURNING *
         ` , [shipperId , carrierId , packageId , contractStart , contractEnd]);
 
-    return newContract.rows
+    return newContract.rows[0]
 }
 
 const deleteContract = async (id) => {

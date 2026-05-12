@@ -10,12 +10,12 @@ router.get('/shipments' , requireAuth , getShipmentsByCarrierId)
 
 router.get('/shipments/geometry/:shipmentId' , requireAuth , getShipmentById)
 
-router.patch('/shipments/:shipmentId' , requireAdmin , updateShipment)
+router.patch('/shipments/:shipmentId' , requireAuth , requireAdmin , updateShipment)
 
 
 router.get('/packages' , requireAuth , getPkgsByCarrierUser)
 
-router.post('/packages' , requireAdmin , createPkgByCarrierUser)
+router.post('/packages' , requireAuth , requireAdmin , createPkgByCarrierUser)
 
 router.get('/shippers' , requireAuth , async (req , res)=>{
     try{
@@ -31,6 +31,6 @@ router.get('/shippers' , requireAuth , async (req , res)=>{
     }
 })
 
-router.post('/contracts' , requireAdmin , createContract)
+router.post('/contracts' , requireAuth , requireAdmin , createContract)
 
 module.exports = router;

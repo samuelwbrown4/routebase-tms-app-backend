@@ -166,6 +166,8 @@ const getShipmentById = async (id) => {
         
          shipments.id,
             shipments.shipment_number,
+            shipments.route_geometry,
+            shipments.current_position,
             carriers.name AS carrier_name,
             carriers.scac AS carrier_scac,
             shipper_locations.name AS origin,
@@ -234,7 +236,9 @@ const getShipmentById = async (id) => {
             customer_locations.zip_code,
             shipments.equipment_type_id,
             shipments.status,
-            shipments.total_weight
+            shipments.total_weight,
+            shipments.route_geometry,
+            shipments.current_position
         `, [id])
 
     return shipment.rows[0]
