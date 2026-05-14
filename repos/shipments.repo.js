@@ -1,6 +1,6 @@
 const pool = require('../db/pool');
 
-const createShipment = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders) => {
+const createShipment = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance) => {
     try {
 
         await pool.query('BEGIN')
@@ -11,11 +11,11 @@ const createShipment = async (originId, destinationId, carrier, equipmentType, s
 
         let newShipment = await pool.query(`
             INSERT INTO shipments
-            (shipment_number , origin_id , destination_id , carrier_id , equipment_type_id , status , total_weight , requested_pickup_date , requested_delivery_date , planned_by_user_id) 
+            (shipment_number , origin_id , destination_id , carrier_id , equipment_type_id , status , total_weight , requested_pickup_date , requested_delivery_date , planned_by_user_id, distance) 
             
-            VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8 , $9 , $10 )
+            VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8 , $9 , $10, $11 )
             
-            RETURNING *` , [shipmentNumber, originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId]);
+            RETURNING *` , [shipmentNumber, originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, distance]);
 
 
         await pool.query(`

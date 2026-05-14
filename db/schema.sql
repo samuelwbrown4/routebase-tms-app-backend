@@ -169,6 +169,7 @@ CREATE TABLE shipments (
     requested_delivery_date DATE NOT NULL,
     actual_pickup_date DATE,
     actual_delivery_date DATE,
+    distance DECIMAL (10,2),
     planned_by_user_id UUID NOT NULL,
     route_geometry JSONB,
     transit_start_time TIMESTAMP,

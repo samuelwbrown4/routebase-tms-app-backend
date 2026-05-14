@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const {getConversations} = require('../controllers/conversations.controller');
+const {getConversations , getConversation} = require('../controllers/conversations.controller');
 const { createConversation , createMessage , readMessages} = require('../controllers/conversations.controller');
 const { requireAuth } = require('../middleware/auth');
 
@@ -10,5 +10,6 @@ router.post('/conversations' , requireAuth , createConversation);
 router.post('/conversations/messages' , requireAuth , createMessage)
 /*router.get('/conversations/messages' , requireAuth , getMessages)*/
 router.patch('/conversations/messages/:conversationId' , requireAuth , readMessages)
+router.get('/conversations/:shipmentId' , requireAuth , getConversation)
 
 module.exports = router;

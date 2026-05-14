@@ -160,4 +160,43 @@ const readMessages = async (conversationId , sender) => {
         return updatedConvos.rows
 }
 
-module.exports = {getCarrierConversations , getShipperConversations , createConversation , createMessage , checkExistingConversation , getMessages , readMessages}
+const getConversation = async (shipmentId) => {
+    let conversation = await pool.query(`
+        SELECT
+
+        conversations.id AS conv_id,
+            shipment_id,
+            shipments.shipment_number AS shipment_number,
+            carriers.name AS carrier_name,
+            companies.name AS company_name,
+            shipper_locations.name AS shipper_location_name,
+            json_agg(
+                json_build_object(
+                    'text' , messages.text,
+                    'sender' , messages.sender,
+                    'time_sent' , messages.time_sent,
+                    'read_by_receiver' , messages.read_by_receiver
+                )ORDER BY time_sent
+            )AS messages
+
+        FROM conversations
+
+        JOIN carriers ON conversations.carrier_id = carriers.id
+
+        JOIN companies ON conversations.company_id = companies.id
+
+        JOIN messages ON conversations.id = messages.conversation_id
+
+        JOIN shipper_locations ON conversations.shipper_location_id = shipper_locations.id
+
+        JOIN shipments ON conversations.shipment_id = shipments.id
+
+        WHERE shipments.id = $1
+
+        GROUP BY conversations.id, shipment_id, carrier_name , company_name , shipper_location_name, shipments.shipment_number
+        `,[shipmentId]);
+
+        return conversation.rows[0]
+}
+
+module.exports = {getCarrierConversations , getShipperConversations , createConversation , createMessage , checkExistingConversation , getMessages , readMessages , getConversation}

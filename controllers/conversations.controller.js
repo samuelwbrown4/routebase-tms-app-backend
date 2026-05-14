@@ -1,4 +1,4 @@
-const { getCarrierConversationsService, getShipperConversationsService, createConversationService, createMessageService, checkExistingConversationService , readMessagesService } = require('../services/conversations.service')
+const { getCarrierConversationsService, getShipperConversationsService, createConversationService, createMessageService, checkExistingConversationService , readMessagesService, getConversationService } = require('../services/conversations.service')
 
 const { getCompanyIdService, getCompanyIdByShipperLocService, getShipperLocationIdService } = require('../services/shippers.service')
 
@@ -82,4 +82,14 @@ const readMessages = async (req , res) => {
     }
 }
 
-module.exports = { getConversations, createConversation, createMessage , readMessages }
+const getConversation = async (req , res) => {
+    try{
+        const {shipmentId} = req.params
+        const conversation = await getConversationService(shipmentId)
+        res.status(200).json({conversation})
+    }catch(err){
+        res.status(500).json({error: err.message})
+    }
+}
+
+module.exports = { getConversations, createConversation, createMessage , readMessages , getConversation}
