@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors')
+const cookieParser = require('cookie-parser')
 require('dotenv').config()
 const {startTrackingJob} = require('./jobs/trackingSimJob')
 
@@ -9,8 +10,10 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://routebase.cloud', 'https://www.routebase.cloud']
+    origin: ['http://localhost:5173', 'https://routebase.cloud', 'https://www.routebase.cloud'],
+    credentials: true
 }))
+app.use(cookieParser())
 
 
 const userRoutes = require('./routes/users');
