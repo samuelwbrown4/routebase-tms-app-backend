@@ -26,4 +26,43 @@ const getRatesByShipperUser = async (id , distance) => {
         return response.rows;
 }
 
-module.exports = {getRatesByShipperUser}
+const getRateByCarrier = async (carrier , companyId , distance) => {
+        console.log('=== getRateByCarrier ===');
+    console.log('carrier param:', carrier);
+    console.log('distance param:', distance);
+    let rateDetails = await pool.query(`
+        SELECT 
+
+            rates.flat_rate,
+            rates.per_mile_rate,
+            rates.fuel_surcharge_percentage
+
+            FROM rates
+
+            JOIN rate_packages ON rates.package_id = rate_packages.id
+            JOIN contracts ON rate_packages.id = contracts.package_id
+
+            WHERE contracts.carrier_id = $1 
+            
+            AND contracts.contract_status = 'active' 
+
+            AND contracts.company_id = $2
+            
+            AND (
+            
+                (rates.max_distance IS NOT NULL AND $3 > rates.min_distance AND $3 < rates.max_distance) 
+                
+                OR 
+                
+                (rates.max_distance IS NULL AND $3 > rates.min_distance)
+            ) ;
+        ` , [carrier , companyId , distance])
+
+        console.log('rows returned:', rateDetails.rows.length);
+    console.log('first row:', rateDetails.rows[0]);
+    console.log('======================');
+
+        return rateDetails.rows[0]
+}
+
+module.exports = {getRatesByShipperUser , getRateByCarrier}

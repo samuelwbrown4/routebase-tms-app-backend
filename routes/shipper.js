@@ -5,13 +5,13 @@ const { requireAdmin, requireAuth } = require('../middleware/auth');
 const {getAllOrders , getOrderLineItems, getOrdersByStatus} = require('../controllers/orders.controller');
 const {getAllCarriers} = require('../controllers/carriers.controller');
 const {createShipment , getUndeliveredShipments , getShipmentById , shipmentSearch} = require('../controllers/shipments.controller');
-const {getRatesByShipperUser} = require('../controllers/rates.controller')
+const {getRatesByShipperUser , getRateByCarrier} = require('../controllers/rates.controller')
 const {getContractsByShipperUser , deleteContract ,updateContractStatus} = require('../controllers/contracts.controller')
 const {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId , getShipmentsByShipperLocation} = require('../controllers/shippers.controller')
 const {createShipperUser , updateNewShipperUser , getAllShipperUsers} = require('../controllers/shipperUsers.controller')
 const {getCustomerLocationsByCompanyId , createCustomerLocation} = require('../controllers/customerLocations.controller')
 const {getCustomersByCompanyId} = require('../controllers/customers.controller')
-const {generateBol} = require('../controllers/documents.controller')
+const {generateBol} = require('../controllers/documents.controller');
 
 
 router.get('/companies/:id' , requireAuth , getCompanyId)
@@ -41,6 +41,8 @@ router.get('/carriers' , requireAuth , getAllCarriers)
 router.post('/shipments' , requireAdmin , createShipment)
 
 router.post('/rates' , requireAuth , getRatesByShipperUser)
+
+router.post('/rates/:carrier' , requireAuth , getRateByCarrier)
 
 router.get('/shipments' , requireAuth , getShipmentsByShipperLocation)
 

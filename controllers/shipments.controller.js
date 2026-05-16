@@ -4,9 +4,9 @@ const {getShipperLocationIdService} = require('../services/shippers.service')
 
 const createShipment = async (req, res) => {
     try {
-        const { originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance} = req.body
+        const { originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance , rate} = req.body
 
-        const shipment = await createShipmentService(originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders , distance)
+        const shipment = await createShipmentService(originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders , distance , rate)
 
         res.status(200).json({ shipment })
     } catch (err) {

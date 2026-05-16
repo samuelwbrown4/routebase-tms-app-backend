@@ -1,6 +1,6 @@
 const pool = require('../db/pool');
 
-const createShipment = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance) => {
+const createShipment = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance , rate) => {
     try {
 
         await pool.query('BEGIN')
@@ -11,11 +11,11 @@ const createShipment = async (originId, destinationId, carrier, equipmentType, s
 
         let newShipment = await pool.query(`
             INSERT INTO shipments
-            (shipment_number , origin_id , destination_id , carrier_id , equipment_type_id , status , total_weight , requested_pickup_date , requested_delivery_date , planned_by_user_id, distance) 
+            (shipment_number , origin_id , destination_id , carrier_id , equipment_type_id , status , total_weight , requested_pickup_date , requested_delivery_date , planned_by_user_id, distance , rate) 
             
-            VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8 , $9 , $10, $11 )
+            VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8 , $9 , $10, $11 , $12)
             
-            RETURNING *` , [shipmentNumber, originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, distance]);
+            RETURNING *` , [shipmentNumber, originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, distance , rate]);
 
 
         await pool.query(`
@@ -167,6 +167,10 @@ const getShipmentById = async (id) => {
          shipments.id,
             shipments.shipment_number,
             shipments.route_geometry,
+            shipments.distance,
+            shipments.rate,
+            shipments.origin_id,
+            shipments.carrier_id,
             shipments.current_position,
             carriers.name AS carrier_name,
             carriers.scac AS carrier_scac,
@@ -238,7 +242,11 @@ const getShipmentById = async (id) => {
             shipments.status,
             shipments.total_weight,
             shipments.route_geometry,
-            shipments.current_position
+            shipments.current_position,
+            shipments.distance,
+            shipments.rate,
+            shipments.carrier_id,
+            shipments.origin_id
         `, [id])
 
     return shipment.rows[0]
