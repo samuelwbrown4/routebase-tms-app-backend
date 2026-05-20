@@ -1,4 +1,4 @@
-const {getAllOrdersService , getOrderLineItemsService , getOrdersByStatusService} = require('../services/orders.service.js')
+const {getAllOrdersService , getOrderLineItemsService , getOrdersByStatusService , createOrderService} = require('../services/orders.service.js')
 const {getShipperLocationIdService} = require('../services/shippers.service.js')
 
 const getAllOrders = async (req , res) => {
@@ -37,4 +37,21 @@ const getOrdersByStatus = async (req , res) => {
     }
 }
 
-module.exports = {getAllOrders , getOrderLineItems , getOrdersByStatus}
+const createOrder = async (req , res) => {
+    try{
+        console.log('order controller hit')
+        const companyId = req.companyId
+        const {payload} = req.body
+        console.log('companyId' ,companyId)
+
+        payload.orderWeight = 0;
+        payload.lineItems.forEach(li=> {payload.orderWeight += li.weight})
+
+        let newOrder = await createOrderService(payload)
+        res.status(201).json({message: 'success'})
+    }catch(err){
+        res.status(500).json({error: err.message})
+    }
+}
+
+module.exports = {getAllOrders , getOrderLineItems , getOrdersByStatus , createOrder}

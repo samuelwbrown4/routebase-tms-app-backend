@@ -137,16 +137,6 @@ CREATE TABLE carrier_users (
     CONSTRAINT fk_carrier_id FOREIGN KEY (carrier_id) REFERENCES carriers(id)
 );
 
-CREATE TABLE products (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    company_id UUID NOT NULL,
-    material_number VARCHAR(255) NOT NULL,
-    description VARCHAR(255) NOT NULL,
-    weight DECIMAL(10, 2) NOT NULL,
-    freight_class VARCHAR(10) NOT NULL,
-    unit_of_measure VARCHAR(10) NOT NULL,
-    CONSTRAINT fk_company_id FOREIGN KEY (company_id) REFERENCES companies(id)
-);
 
 CREATE TABLE equipment_types (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -204,20 +194,14 @@ CREATE TABLE orders (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     requested_ship_date DATE NOT NULL,
     order_status order_status NOT NULL,
+    weight DECIMAL (10 ,2) NOT NULL,
+    order_line_items JSONB NOT NULL, 
     CONSTRAINT fk_customer_id FOREIGN KEY (customer_id) REFERENCES customers(id),
     CONSTRAINT fk_origin_id FOREIGN KEY (origin_id) REFERENCES shipper_locations(id),
     CONSTRAINT fk_destination_id FOREIGN KEY (destination_id) REFERENCES customer_locations(id)
 );
 
-CREATE TABLE order_line_items (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    order_id UUID NOT NULL,
-    product_id UUID NOT NULL,
-    quantity INT NOT NULL,
-    total_weight_lbs DECIMAL(10, 2) NOT NULL,
-    CONSTRAINT fk_order_id FOREIGN KEY (order_id) REFERENCES orders(id),
-    CONSTRAINT fk_product_id FOREIGN KEY (product_id) REFERENCES products(id)
-);
+
 
 
 
@@ -293,5 +277,12 @@ CREATE TABLE messages (
     read_by_receiver BOOLEAN DEFAULT FALSE,
     CONSTRAINT fk_conversation_id FOREIGN KEY (conversation_id) REFERENCES conversations(id)
 );
+
+CREATE TABLE api_keys (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    company_id UUID NOT NULL UNIQUE,
+    api_key VARCHAR(255) NOT NULL UNIQUE,
+    CONSTRAINT fk_company_id FOREIGN KEY (company_id) REFERENCES companies(id)
+)
 
 

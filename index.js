@@ -20,11 +20,13 @@ const userRoutes = require('./routes/users');
 const shipper = require('./routes/shipper');
 const carrier = require('./routes/carrier');
 const shared = require('./routes/shared');
+const integration = require('./routes/integration')
 
 app.use('/api/users' , userRoutes);
 app.use('/api/shipper' , shipper);
 app.use('/api/carrier' , carrier);
 app.use('/api/shared' , shared);
+app.use('/api/integration' , integration);
 
 app.get('/' , (req , res) => {
     res.send('TMS app up and running!')
