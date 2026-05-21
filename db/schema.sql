@@ -34,6 +34,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION erp_order_sync()
+RETURNS TRIGGER AS $$
+BEGIN 
+    IF NEW.order_status != OLD.order_status
+    THEN NEW.synced = FALSE;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE TABLE companies (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -195,13 +205,17 @@ CREATE TABLE orders (
     requested_ship_date DATE NOT NULL,
     order_status order_status NOT NULL,
     weight DECIMAL (10 ,2) NOT NULL,
-    order_line_items JSONB NOT NULL, 
+    order_line_items JSONB NOT NULL,
+    synced BOOLEAN DEFAULT TRUE,  
     CONSTRAINT fk_customer_id FOREIGN KEY (customer_id) REFERENCES customers(id),
     CONSTRAINT fk_origin_id FOREIGN KEY (origin_id) REFERENCES shipper_locations(id),
     CONSTRAINT fk_destination_id FOREIGN KEY (destination_id) REFERENCES customer_locations(id)
 );
 
-
+CREATE TRIGGER trigger_erp_order_sync
+BEFORE UPDATE ON orders
+FOR EACH ROW
+EXECUTE FUNCTION erp_order_sync();
 
 
 

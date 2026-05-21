@@ -26,7 +26,7 @@ const createShipment = async (originId, destinationId, carrier, equipmentType, s
 
         await pool.query(`
             UPDATE orders
-            SET order_status = 'planned' 
+            SET order_status = 'planned'
             WHERE id = ANY($1::uuid[])` , [orders])
 
 

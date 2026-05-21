@@ -3,6 +3,7 @@ const cors = require('cors')
 const cookieParser = require('cookie-parser')
 require('dotenv').config()
 const {startTrackingJob} = require('./jobs/trackingSimJob')
+const {startOrderSync} = require('./jobs/erpOrderSync')
 
 const PORT = process.env.PORT || 4000
 
@@ -35,4 +36,5 @@ app.get('/' , (req , res) => {
 app.listen(PORT , ()=> {
     console.log(`App is running on port ${PORT}`);
     startTrackingJob();
+    startOrderSync();
 })
