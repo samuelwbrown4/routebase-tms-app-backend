@@ -92,17 +92,13 @@ const getOrdersByStatus = async (status , shipperLocation) => {
 const getOrderLineItems = async (orderId) => {
     const lineItems = await pool.query(`
             SELECT 
-                products.material_number,
-                products.description,
-                products.freight_class,
-                order_line_items.quantity,
-                order_line_items.total_weight_lbs
-            FROM order_line_items
-            JOIN products ON order_line_items.product_id = products.id
-            WHERE order_id = $1
+                orders.order_line_items
+            FROM orders
+            
+            WHERE orders.id = $1
             ` , [orderId]);
 
-    return lineItems.rows;
+    return lineItems.rows[0];
 }
 
 const createOrder = async (payload) => {
