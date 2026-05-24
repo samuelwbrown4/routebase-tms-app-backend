@@ -189,28 +189,14 @@ const getShipmentById = async (id) => {
             shipments.total_weight,
             json_agg(
                 json_build_object(
-                    'order_id', orders.id,
-                    'order_number', orders.order_number,
-                    'customer_po', orders.customer_po_number,
-                    'weight' , (SELECT SUM(total_weight_lbs) FROM order_line_items WHERE order_line_items.order_id = orders.id),
-                    'line_items', (
-                        SELECT json_agg(
-                            json_build_object(
-                            'product_id', order_line_items.id,
-                                'material_number', products.material_number,
-                                'description', products.description,
-                                'quantity', order_line_items.quantity,
-                                'weight' , order_line_items.total_weight_lbs ,
-                                'freight_class', products.freight_class
-                            )
-                        )
-                        FROM order_line_items
-                        JOIN products ON order_line_items.product_id = products.id
-                        WHERE order_line_items.order_id = orders.id
-                        
-                    )
+                    'id',orders.id,
+                    'order_number' , orders.order_number,
+                    'customer_po_number' , orders.customer_po_number,
+                    'weight' , orders.weight,
+                    'order_line_items' , orders.order_line_items
                 )
             ) AS orders
+            
         
         FROM shipments 
 
@@ -247,6 +233,8 @@ const getShipmentById = async (id) => {
             shipments.rate,
             shipments.carrier_id,
             shipments.origin_id
+            
+            
         `, [id])
 
     return shipment.rows[0]
