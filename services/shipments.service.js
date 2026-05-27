@@ -19,6 +19,12 @@ const getUndeliveredShipmentsService = async (status) => {
 const getShipmentsByCarrierIdService = async (userId , status ) => {
     if(status.length === 1 && status[0] === 'pending_carrier'){
         let shipments = await carrierGetSpotShipments(status)
+        shipments = shipments.map(shipment => {
+            if (shipment.bid_deadline) {
+                shipment.bid_deadline = new Date(shipment.bid_deadline).toISOString()
+            }
+            return shipment
+        })
         return shipments
     }
 
