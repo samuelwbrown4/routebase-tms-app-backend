@@ -1,4 +1,4 @@
-const {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId , getShipmentsByShipperLocation , getCompanyIdByShipperLoc} = require('../repos/shippers.repo')
+const {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId , getShipmentsByShipperLocation , getCompanyIdByShipperLoc , getSpotLoadsByShipperLocation } = require('../repos/shippers.repo')
 
 const getCompanyIdService = async (id) => {
     let companyId = await getCompanyId(id);
@@ -19,8 +19,13 @@ const getAllShipperLocationsByCompanyIdService = async (id) => {
 }
 
 const getShipmentsByShipperLocationService = async (id , status) => {
-    const shipments = await getShipmentsByShipperLocation(id , status)
 
+    if(status.length === 1 && status[0] === 'pending_carrier'){
+        let shipments = await getSpotLoadsByShipperLocation(id , status)
+        return shipments
+    }
+
+    let shipments = await getShipmentsByShipperLocation(id , status)
     return shipments
 }
 

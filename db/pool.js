@@ -1,4 +1,8 @@
 const { Pool } = require('pg');
+const pg = require('pg')
+
+pg.types.setTypeParser(1114, str => str) // TIMESTAMP
+pg.types.setTypeParser(1184, str => str) // TIMESTAMPTZ
 
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',

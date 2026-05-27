@@ -1,7 +1,7 @@
-const {createShipment , getUndeliveredShipments , getShipmentsByCarrierId , updateShipment , getShipmentCoordsById , getShipmentById , getCarrierShipmentByShipmentNumber , getShipperShipmentByShipmentNumber , getShipmentByShipmentNumber , shipmentSearch} = require('../repos/shipments.repo')
+const {createShipment , getUndeliveredShipments , getShipmentsByCarrierId , updateShipment , getShipmentCoordsById , getShipmentById , getCarrierShipmentByShipmentNumber , getShipperShipmentByShipmentNumber , getShipmentByShipmentNumber , shipmentSearch , carrierGetSpotShipments , makeSpotOffer , acceptSpotOffer , resetBidDeadline} = require('../repos/shipments.repo')
 
-const createShipmentService = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId,  orders, distance , rate) => {
-    const shipment = await createShipment(originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance , rate);
+const createShipmentService = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId,  orders, distance , rate , shipmentStatus , bidDeadline) => {
+    const shipment = await createShipment(originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance , rate , shipmentStatus , bidDeadline);
 
     return shipment;
 };
@@ -13,8 +13,12 @@ const getUndeliveredShipmentsService = async (status) => {
 }
 
 const getShipmentsByCarrierIdService = async (userId , status ) => {
-    const shipments = await getShipmentsByCarrierId(userId , status );
+    if(status.length === 1 && status[0] === 'pending_carrier'){
+        let shipments = await carrierGetSpotShipments(status)
+        return shipments
+    }
 
+    let shipments = await getShipmentsByCarrierId(userId , status );
     return shipments
 }
 
@@ -56,4 +60,22 @@ const shipmentSearchService = async (id , searchValue) => {
     return shipments;
 }
 
-module.exports = {createShipmentService , getUndeliveredShipmentsService , getShipmentsByCarrierIdService , updateShipmentService , getShipmentCoordsByIdService , getShipmentByIdService , getCarrierShipmentByShipmentNumberService , getShipperShipmentByShipmentNumberService , getShipmentByShipmentNumberService , shipmentSearchService}
+const makeSpotOfferService = async (carrierId , shipmentId , rate) => {
+    const bid = await makeSpotOffer(carrierId , shipmentId , rate);
+
+    return bid
+}
+
+const acceptSpotOfferService = async (offerId , shipmentId) => {
+    const acceptedShipment = await acceptSpotOffer(offerId , shipmentId)
+
+    return acceptedShipment
+}
+
+const resetBidDeadlineService = async (shipmentId , bidDeadline) => {
+    let updatedShipment = await resetBidDeadline(shipmentId , bidDeadline);
+
+    return updatedShipment;
+}
+
+module.exports = {createShipmentService , getUndeliveredShipmentsService , getShipmentsByCarrierIdService , updateShipmentService , getShipmentCoordsByIdService , getShipmentByIdService , getCarrierShipmentByShipmentNumberService , getShipperShipmentByShipmentNumberService , getShipmentByShipmentNumberService , shipmentSearchService , makeSpotOfferService , acceptSpotOfferService , resetBidDeadlineService}

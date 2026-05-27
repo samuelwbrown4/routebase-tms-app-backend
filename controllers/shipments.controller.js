@@ -1,12 +1,20 @@
-const { createShipmentService, getUndeliveredShipmentsService, getShipmentsByCarrierIdService, updateShipmentService, getShipmentCoordsByIdService , getShipmentByIdService , shipmentSearchService } = require('../services/shipments.service')
+const { createShipmentService, getUndeliveredShipmentsService, getShipmentsByCarrierIdService, updateShipmentService, getShipmentCoordsByIdService, getShipmentByIdService, shipmentSearchService , makeSpotOfferService, acceptSpotOfferService, resetBidDeadlineService } = require('../services/shipments.service')
 
-const {getShipperLocationIdService} = require('../services/shippers.service')
+const { getShipperLocationIdService } = require('../services/shippers.service')
+
+const {getCarrierIdByUserService} = require('../services/carriers.service')
 
 const createShipment = async (req, res) => {
     try {
-        const { originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance , rate} = req.body
+        const { originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance, rate, expiry, shipmentType } = req.body
 
-        const shipment = await createShipmentService(originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders , distance , rate)
+        const bidDeadline = new Date(Date.now() + (parseInt(expiry) * (60 * 60 * 1000)))
+
+        const carrierValue = carrier || null;
+        const rateValue = rate || null;
+        const bidDeadlineValue = bidDeadline || null;
+
+        const shipment = await createShipmentService(originId, destinationId, carrierValue, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance, rateValue, shipmentType, bidDeadlineValue)
 
         res.status(200).json({ shipment })
     } catch (err) {
@@ -16,7 +24,7 @@ const createShipment = async (req, res) => {
 
 const getUndeliveredShipments = async (req, res) => {
     try {
-        const {status} = req.query
+        const { status } = req.query
         const undeliveredShipments = await getUndeliveredShipmentsService(status)
 
         res.status(200).json({ undeliveredShipments })
@@ -28,9 +36,9 @@ const getUndeliveredShipments = async (req, res) => {
 const getShipmentsByCarrierId = async (req, res) => {
     try {
         const { id } = req.user;
-        const {status} = req.query;
+        const { status } = req.query;
         let statusArray = status.split(',')
-        const shipments = await getShipmentsByCarrierIdService(id , statusArray)
+        const shipments = await getShipmentsByCarrierIdService(id, statusArray)
         res.status(200).json({ shipments })
     } catch (err) {
         res.status(500).json({ error: err.message })
@@ -62,7 +70,7 @@ const updateShipment = async (req, res) => {
 
         }
 
-        await updateShipmentService(shipmentId, date, userId, eventType, routeGeometry , driveTime)
+        await updateShipmentService(shipmentId, date, userId, eventType, routeGeometry, driveTime)
         res.status(200).json({ message: 'Shipment updated successfully' })
 
     } catch (err) {
@@ -70,30 +78,67 @@ const updateShipment = async (req, res) => {
     }
 }
 
-const getShipmentById = async (req , res) => {
-    try{
-        const {shipmentId} = req.params;
+const getShipmentById = async (req, res) => {
+    try {
+        const { shipmentId } = req.params;
         let shipment = await getShipmentByIdService(shipmentId);
-        res.status(200).json({shipment})
-    }catch(err){
-        res.status(500).json({error: err.message})
+        res.status(200).json({ shipment })
+    } catch (err) {
+        res.status(500).json({ error: err.message })
     }
 }
 
-const shipmentSearch = async (req , res) => {
-    try{
-        const {id} = req.user
-        const {value} = req.query
+const shipmentSearch = async (req, res) => {
+    try {
+        const { id } = req.user
+        const { value } = req.query
         const modSearchValue = '%' + value.toLowerCase() + '%'
 
         const shipperLocation = await getShipperLocationIdService(id)
 
-        const shipments = await shipmentSearchService(shipperLocation , modSearchValue)
+        const shipments = await shipmentSearchService(shipperLocation, modSearchValue)
 
-        res.status(200).json({shipments})
+        res.status(200).json({ shipments })
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+}
+
+const makeSpotOffer = async (req , res) => {
+    try{
+        const {id} = req.user
+        const {shipmentId} = req.params
+        const {offer} = req.body
+
+        const carrierId = await getCarrierIdByUserService(id)
+
+        const bid = await makeSpotOfferService(carrierId , shipmentId , offer)
+        res.status(201).json({bid})
     }catch(err){
         res.status(500).json({error: err.message})
     }
 }
 
-module.exports = { createShipment, getUndeliveredShipments, getShipmentsByCarrierId, updateShipment , getShipmentById , shipmentSearch }
+const acceptSpotOffer = async (req , res) => {
+    try{
+        const {shipmentId , offerId} = req.params
+        let acceptedShipment = await acceptSpotOfferService(offerId , shipmentId)
+        res.status(200).json({acceptedShipment})
+    }catch(err){
+        res.status(500).json({error: err.message})
+    }
+}
+
+const resetBidDeadline = async (req , res) => {
+    try{
+        const {shipmentId} = req.params
+        const bidDeadline = new Date(Date.now() + (parseInt(2) * (60 * 60 * 1000)))
+
+        const updatedShipment = await resetBidDeadlineService(shipmentId , bidDeadline)
+        res.status(201).json({updatedShipment})
+    }catch(err){
+        res.status(500).json({error: err.message})
+    }
+}
+
+module.exports = { createShipment, getUndeliveredShipments, getShipmentsByCarrierId, updateShipment, getShipmentById, shipmentSearch , makeSpotOffer , acceptSpotOffer , resetBidDeadline}

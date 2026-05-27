@@ -54,6 +54,7 @@ const getAllShipperLocationsByCompanyId = async (id) => {
 
 const getShipmentsByShipperLocation = async (id , status ) => {
             const response = await pool.query(`
+
             SELECT 
             
             shipments.id,
@@ -74,7 +75,9 @@ const getShipmentsByShipperLocation = async (id , status ) => {
             shipments.requested_pickup_date,
             shipments.requested_delivery_date,
             shipments.actual_pickup_date,
-            shipments.actual_delivery_date
+            shipments.actual_delivery_date,
+            shipments.bid_deadline,
+            shipments.shipment_type
 
             FROM shipments 
 
@@ -89,4 +92,80 @@ const getShipmentsByShipperLocation = async (id , status ) => {
         return response.rows
 }
 
-module.exports = {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId , getShipmentsByShipperLocation , getCompanyIdByShipperLoc}
+const getSpotLoadsByShipperLocation = async (id , status) => {
+    let response = await pool.query(`
+        
+            SELECT 
+            
+            shipments.id,
+            shipments.shipment_number,
+            shipper_locations.name AS origin,
+            shipper_locations.address AS origin_address,
+            shipper_locations.city AS origin_city,
+            shipper_locations.state AS origin_state,
+            shipper_locations.zip_code AS origin_zip,
+            customer_locations.name AS destination,
+            customer_locations.address AS destination_address,
+            customer_locations.city AS destination_city,
+            customer_locations.state AS destination_state,
+            customer_locations.zip_code AS destination_zip,
+            shipments.equipment_type_id,
+            shipments.status,
+            shipments.total_weight,
+            shipments.requested_pickup_date,
+            shipments.requested_delivery_date,
+            shipments.actual_pickup_date,
+            shipments.actual_delivery_date,
+            shipments.bid_deadline,
+            shipments.shipment_type,
+            json_agg(
+                json_build_object(
+                    'offer_id' , spot_bids.id,
+                    'shipment_number' , shipments.shipment_number,
+                    'carrier_name' , carriers.name,
+                    'rate' , spot_bids.rate,
+                    'status' , spot_bids.status,
+                    'submitted_at' , spot_bids.created_at
+                ) ORDER BY spot_bids.rate
+            ) FILTER (WHERE spot_bids.id IS NOT NULL AND spot_bids.status != 'rejected') AS offers
+         
+            FROM shipments 
+
+           
+            JOIN shipper_locations ON shipper_locations.id = shipments.origin_id
+            JOIN customer_locations ON customer_locations.id = shipments.destination_id
+            LEFT JOIN spot_bids ON spot_bids.shipment_id = shipments.id
+            LEFT JOIN carriers ON spot_bids.carrier_id = carriers.id
+
+            WHERE shipper_locations.id = $1 
+            AND shipments.status = ANY($2)
+
+            GROUP BY 
+            shipments.id,
+            shipments.shipment_number,
+            shipper_locations.name,
+            shipper_locations.address,
+            shipper_locations.city,
+            shipper_locations.state ,
+            shipper_locations.zip_code,
+            customer_locations.name,
+            customer_locations.address,
+            customer_locations.city,
+            customer_locations.state,
+            customer_locations.zip_code,
+            shipments.equipment_type_id,
+            shipments.status,
+            shipments.total_weight,
+            shipments.requested_pickup_date,
+            shipments.requested_delivery_date,
+            shipments.actual_pickup_date,
+            shipments.actual_delivery_date,
+            shipments.bid_deadline,
+            shipments.shipment_type
+
+        ` , [id , status]);
+
+        return response.rows
+}
+
+module.exports = {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId , getShipmentsByShipperLocation , getCompanyIdByShipperLoc , getSpotLoadsByShipperLocation}

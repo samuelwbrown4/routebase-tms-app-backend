@@ -1,6 +1,6 @@
 const pool = require('../db/pool');
 
-const createShipment = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance , rate) => {
+const createShipment = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance, rate, shipmentType, bidDeadline) => {
     try {
 
         await pool.query('BEGIN')
@@ -11,11 +11,11 @@ const createShipment = async (originId, destinationId, carrier, equipmentType, s
 
         let newShipment = await pool.query(`
             INSERT INTO shipments
-            (shipment_number , origin_id , destination_id , carrier_id , equipment_type_id , status , total_weight , requested_pickup_date , requested_delivery_date , planned_by_user_id, distance , rate) 
+            (shipment_number , origin_id , destination_id , carrier_id , equipment_type_id , status , total_weight , requested_pickup_date , requested_delivery_date , planned_by_user_id, distance , rate , shipment_type , bid_deadline) 
             
-            VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8 , $9 , $10, $11 , $12)
+            VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8 , $9 , $10, $11 , $12 , $13 , $14)
             
-            RETURNING *` , [shipmentNumber, originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, distance , rate]);
+            RETURNING *` , [shipmentNumber, originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, distance, rate, shipmentType, bidDeadline]);
 
 
         await pool.query(`
@@ -84,6 +84,77 @@ const getShipmentsByCarrierId = async (id, status) => {
             AND shipments.status = ANY($2)
             ` , [id, status])
 
+    return response.rows
+}
+
+const carrierGetSpotShipments = async (status) => {
+    const response = await pool.query(`
+        SELECT
+        shipments.id,
+            shipments.shipment_number,
+            shipper_locations.name AS origin,
+            shipper_locations.address AS origin_address,
+            shipper_locations.city AS origin_city,
+            shipper_locations.state AS origin_state,
+            shipper_locations.zip_code AS origin_zip,
+            customer_locations.name AS destination,
+            customer_locations.address AS destination_address,
+            customer_locations.city AS destination_city,
+            customer_locations.state AS destination_state,
+            customer_locations.zip_code AS destination_zip,
+            shipments.equipment_type_id,
+            shipments.status,
+            shipments.total_weight,
+            shipments.requested_pickup_date,
+            shipments.requested_delivery_date,
+            shipments.actual_pickup_date,
+            shipments.actual_delivery_date,
+            shipments.near_destination,
+            shipments.bid_deadline,
+            shipments.shipment_type,
+            json_agg(
+                json_build_object(
+                    'shipment_number' , shipments.shipment_number,
+                    'carrier_name' , carriers.name,
+                    'rate' , spot_bids.rate,
+                    'status' , spot_bids.status,
+                    'submitted_at' , spot_bids.created_at
+                )
+            ) FILTER (WHERE spot_bids.id IS NOT NULL AND spot_bids.status != 'rejected') AS offers
+
+            FROM shipments 
+
+            JOIN shipper_locations ON shipper_locations.id = shipments.origin_id
+            JOIN customer_locations ON customer_locations.id = shipments.destination_id
+            LEFT JOIN spot_bids ON spot_bids.shipment_id = shipments.id
+            LEFT JOIN carriers ON spot_bids.carrier_id = carriers.id
+
+            WHERE shipments.status = ANY($1)
+
+            GROUP BY
+            shipments.id,
+            shipments.shipment_number,
+            shipper_locations.name,
+            shipper_locations.address,
+            shipper_locations.city,
+            shipper_locations.state,
+            shipper_locations.zip_code,
+            customer_locations.name,
+            customer_locations.address,
+            customer_locations.city,
+            customer_locations.state,
+            customer_locations.zip_code,
+            shipments.equipment_type_id,
+            shipments.status,
+            shipments.total_weight,
+            shipments.requested_pickup_date,
+            shipments.requested_delivery_date,
+            shipments.actual_pickup_date,
+            shipments.actual_delivery_date,
+            shipments.near_destination,
+            shipments.bid_deadline,
+            shipments.shipment_type
+        `, [status]);
     return response.rows
 }
 
@@ -278,4 +349,77 @@ const shipmentSearch = async (id, searchValue) => {
     return shipments.rows;
 }
 
-module.exports = { createShipment, getUndeliveredShipments, getShipmentsByCarrierId, updateShipment, getShipmentCoordsById, getShipmentById, getCarrierShipmentByShipmentNumber, getShipperShipmentByShipmentNumber, getShipmentByShipmentNumber, shipmentSearch }
+const makeSpotOffer = async (carrierId , shipmentId , rate) => {
+    let response = await pool.query(`
+        INSERT INTO spot_bids (carrier_id , shipment_id , rate , status) VALUES ($1 , $2 , $3 , 'active')
+        RETURNING *` , [carrierId , shipmentId , rate])
+
+    return response.rows[0]
+}
+
+const acceptSpotOffer = async (offerId , shipmentId) => {
+   
+  try{
+    await pool.query(`BEGIN`);
+
+    await pool.query(`
+        UPDATE spot_bids
+
+        SET status = CASE
+        WHEN id = $2 THEN 'accepted'::bid_status
+        WHEN id != $2 THEN 'rejected'::bid_status
+        END
+
+        WHERE spot_bids.shipment_id = $1
+        `,[shipmentId , offerId]);
+
+    let response = await pool.query(`
+        UPDATE shipments
+
+        SET status = 'planned',
+            carrier_id = (SELECT carrier_id FROM spot_bids WHERE id = $2),
+            rate = (SELECT rate FROM spot_bids WHERE id = $2)
+
+        WHERE shipments.id = $1
+        RETURNING *`,[shipmentId ,  offerId])
+
+    await pool.query('COMMIT')
+
+    return response.rows[0]
+    
+  }catch(err) {
+        await pool.query('ROLLBACK')
+        throw err
+    }
+}
+
+const resetBidDeadline = async (shipmentId , bidDeadline) => {
+    try{
+        await pool.query('BEGIN');
+
+        let result = await pool.query(`
+            UPDATE shipments
+
+            SET bid_deadline = $2
+
+            WHERE shipments.id = $1
+            RETURNING *` , [shipmentId , bidDeadline]);
+
+        await pool.query(`
+            UPDATE spot_bids
+
+            SET status = 'rejected'::bid_status
+
+            WHERE spot_bids.shipment_id = $1
+            ` , [shipmentId]);
+
+        await pool.query('COMMIT');
+
+            return result.rows[0]
+    }catch(err) {
+        await pool.query('ROLLBACK')
+        throw err
+    }
+}
+
+module.exports = { createShipment, getUndeliveredShipments, getShipmentsByCarrierId, updateShipment, getShipmentCoordsById, getShipmentById, getCarrierShipmentByShipmentNumber, getShipperShipmentByShipmentNumber, getShipmentByShipmentNumber, shipmentSearch , carrierGetSpotShipments , makeSpotOffer , acceptSpotOffer , resetBidDeadline}

@@ -2,7 +2,7 @@ const express = require('express');
 const pool = require('../db/pool')
 const router = express.Router();
 const {requireAuth , requireAdmin} = require('../middleware/auth')
-const {getShipmentsByCarrierId , updateShipment , getShipmentById} = require('../controllers/shipments.controller')
+const {getShipmentsByCarrierId , updateShipment , getShipmentById , makeSpotOffer} = require('../controllers/shipments.controller')
 const {getPkgsByCarrierUser , createPkgByCarrierUser} = require('../controllers/packages.controller')
 const {createContract} = require('../controllers/contracts.controller')
 
@@ -32,5 +32,7 @@ router.get('/shippers' , requireAuth , async (req , res)=>{
 })
 
 router.post('/contracts' , requireAuth , requireAdmin , createContract)
+
+router.post('/spot-bids/:shipmentId' , requireAuth , requireAdmin , makeSpotOffer)
 
 module.exports = router;

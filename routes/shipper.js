@@ -4,7 +4,7 @@ const pool = require('../db/pool');
 const { requireAdmin, requireAuth } = require('../middleware/auth');
 const {getAllOrders , getOrderLineItems, getOrdersByStatus} = require('../controllers/orders.controller');
 const {getAllCarriers} = require('../controllers/carriers.controller');
-const {createShipment , getUndeliveredShipments , getShipmentById , shipmentSearch} = require('../controllers/shipments.controller');
+const {createShipment , getUndeliveredShipments , getShipmentById , shipmentSearch , acceptSpotOffer} = require('../controllers/shipments.controller');
 const {getRatesByShipperUser , getRateByCarrier} = require('../controllers/rates.controller')
 const {getContractsByShipperUser , deleteContract ,updateContractStatus} = require('../controllers/contracts.controller')
 const {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId , getShipmentsByShipperLocation} = require('../controllers/shippers.controller')
@@ -12,6 +12,7 @@ const {createShipperUser , updateNewShipperUser , getAllShipperUsers} = require(
 const {getCustomerLocationsByCompanyId , createCustomerLocation} = require('../controllers/customerLocations.controller')
 const {getCustomersByCompanyId} = require('../controllers/customers.controller')
 const {generateBol} = require('../controllers/documents.controller');
+const { resetBidDeadline } = require('../controllers/shipments.controller');
 
 
 router.get('/companies/:id' , requireAuth , getCompanyId)
@@ -53,6 +54,10 @@ router.get('/shipments/:shipmentId' , requireAuth , getShipmentById)
 router.get('/contracts' , requireAuth , getContractsByShipperUser)
 
 router.get('/documents/:shipmentId/bol' , requireAuth , generateBol)
+
+router.patch('/spot-bids/:shipmentId/:offerId' , requireAuth , acceptSpotOffer)
+
+router.patch('/shipments/bid-deadline/:shipmentId' , requireAuth , resetBidDeadline)
 
 router.post('/proxy/distance', async (req, res) => {
     try {

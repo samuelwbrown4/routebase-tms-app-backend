@@ -2,8 +2,10 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TYPE role AS ENUM ('admin', 'user');
 CREATE TYPE order_status AS ENUM ('unplanned', 'planned', 'in_transit', 'delivered', 'cancelled');
-CREATE TYPE shipment_status AS ENUM ('built', 'planned', 'routed' , 'in_transit', 'delivered', 'cancelled');
+CREATE TYPE shipment_status AS ENUM ('built', 'pending_carrier' , 'planned', 'routed' , 'in_transit', 'delivered', 'cancelled');
 CREATE TYPE shipment_events_type AS ENUM ('routed' , 'picked_up', 'in_transit', 'delivered' , 'comment');
+CREATE TYPE shipment_type AS ENUM ('spot' , 'contract');
+CREATE TYPE bid_status  as ENUM ('active' , 'expired' , 'accepted' , 'rejected');
 CREATE TYPE contract_status AS ENUM ('pending' ,'active', 'expired' , 'rejected', 'terminated');
 
 CREATE OR REPLACE FUNCTION set_transit_start_time()
@@ -19,6 +21,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION shipment_status_validation()
 RETURNS TRIGGER AS $$
 BEGIN
+
     IF NEW.status = 'in_transit' AND OLD.status != 'routed' AND OLD.status != 'in_transit'
     THEN RAISE EXCEPTION 'Shipment must be routed before it is picked up.';
     END IF;
@@ -29,6 +32,32 @@ BEGIN
 
     IF NEW.actual_delivery_date < OLD.transit_start_time
     THEN RAISE EXCEPTION 'Delivery date can not be before pickup date';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION shipment_creation_validation()
+RETURNS TRIGGER AS $$
+BEGIN 
+    IF NEW.shipment_type = 'spot' AND NEW.bid_deadline IS NULL
+    THEN RAISE EXCEPTION 'Bid deadline can not be null';
+    END IF;
+
+    IF NEW.shipment_type = 'contract' AND (NEW.carrier_id IS NULL OR NEW.rate IS NULL)
+    THEN RAISE EXCEPTION 'Contract shipments must have a carrier and rate assigned.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION spot_bid_validation()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.rate IS NULL OR NEW.rate < '1'
+    THEN RAISE EXCEPTION 'Rate cannot be 0 or blank';
     END IF;
     RETURN NEW;
 END;
@@ -158,9 +187,11 @@ CREATE TABLE equipment_types (
 CREATE TABLE shipments (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     shipment_number VARCHAR(255) NOT NULL UNIQUE,
+    shipment_type shipment_type NOT NULL,
+    bid_deadline TIMESTAMP,
     origin_id UUID NOT NULL,
     destination_id UUID NOT NULL,
-    carrier_id UUID NOT NULL,
+    carrier_id UUID ,
     equipment_type_id UUID NOT NULL,
     status shipment_status NOT NULL,
     total_weight DECIMAL(10, 2) NOT NULL,
@@ -170,7 +201,7 @@ CREATE TABLE shipments (
     actual_pickup_date DATE,
     actual_delivery_date DATE,
     distance DECIMAL (10,2) NOT NULL,
-    rate DECIMAL (10,2) NOT NULL,
+    rate DECIMAL (10,2) ,
     planned_by_user_id UUID NOT NULL,
     route_geometry JSONB,
     transit_start_time TIMESTAMP,
@@ -184,15 +215,16 @@ CREATE TABLE shipments (
     CONSTRAINT fk_equipment_type_id FOREIGN KEY (equipment_type_id) REFERENCES equipment_types(id)
 );
 
-CREATE TRIGGER trigger_set_transit_start_time
-BEFORE UPDATE ON shipments
-FOR EACH ROW
-EXECUTE FUNCTION set_transit_start_time();
-
-CREATE TRIGGER trigger_shipment_status_validation
-BEFORE UPDATE ON shipments
-FOR EACH ROW
-EXECUTE FUNCTION shipment_status_validation();
+CREATE TABLE spot_bids (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    shipment_id UUID NOT NULL,
+    carrier_id UUID NOT NULL,
+    rate DECIMAL(10 , 2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status bid_status NOT NULL,
+    CONSTRAINT fk_shipment_id FOREIGN KEY (shipment_id) REFERENCES shipments(id),
+    CONSTRAINT fk_carrier_id FOREIGN KEY (carrier_id) REFERENCES carriers(id)
+);
 
 CREATE TABLE orders (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -211,13 +243,6 @@ CREATE TABLE orders (
     CONSTRAINT fk_origin_id FOREIGN KEY (origin_id) REFERENCES shipper_locations(id),
     CONSTRAINT fk_destination_id FOREIGN KEY (destination_id) REFERENCES customer_locations(id)
 );
-
-CREATE TRIGGER trigger_erp_order_sync
-BEFORE UPDATE ON orders
-FOR EACH ROW
-EXECUTE FUNCTION erp_order_sync();
-
-
 
 CREATE TABLE shipment_events (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -297,6 +322,31 @@ CREATE TABLE api_keys (
     company_id UUID NOT NULL UNIQUE,
     api_key VARCHAR(255) NOT NULL UNIQUE,
     CONSTRAINT fk_company_id FOREIGN KEY (company_id) REFERENCES companies(id)
-)
+);
 
+
+CREATE TRIGGER trigger_spot_bid_validation
+BEFORE INSERT OR UPDATE ON spot_bids
+FOR EACH ROW
+EXECUTE FUNCTION spot_bid_validation();
+
+CREATE TRIGGER trigger_set_transit_start_time
+BEFORE UPDATE ON shipments
+FOR EACH ROW
+EXECUTE FUNCTION set_transit_start_time();
+
+CREATE TRIGGER trigger_shipment_status_validation
+BEFORE UPDATE ON shipments
+FOR EACH ROW
+EXECUTE FUNCTION shipment_status_validation();
+
+CREATE TRIGGER trigger_erp_order_sync
+BEFORE UPDATE ON orders
+FOR EACH ROW
+EXECUTE FUNCTION erp_order_sync();
+
+CREATE TRIGGER trigger_shipment_creation_validation
+BEFORE INSERT ON shipments
+FOR EACH ROW
+EXECUTE FUNCTION shipment_creation_validation();
 
