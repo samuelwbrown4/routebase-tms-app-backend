@@ -132,7 +132,7 @@ const acceptSpotOffer = async (req , res) => {
 const resetBidDeadline = async (req , res) => {
     try{
         const {shipmentId} = req.params
-        const bidDeadline = new Date(Date.now() + (parseInt(2) * (60 * 60 * 1000)))
+        const bidDeadline = new Date(Date.now() + (parseInt(2) * (60 * 60 * 1000))).toISOString()
 
         const updatedShipment = await resetBidDeadlineService(shipmentId , bidDeadline)
         res.status(201).json({updatedShipment})
