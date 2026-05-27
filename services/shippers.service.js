@@ -1,4 +1,4 @@
-const {getCompanyId , getShipperLocationId , getAllShipperLocationsByCompanyId , getShipmentsByShipperLocation , getCompanyIdByShipperLoc , getSpotLoadsByShipperLocation } = require('../repos/shippers.repo')
+const { getCompanyId, getShipperLocationId, getAllShipperLocationsByCompanyId, getShipmentsByShipperLocation, getCompanyIdByShipperLoc, getSpotLoadsByShipperLocation } = require('../repos/shippers.repo')
 
 const getCompanyIdService = async (id) => {
     let companyId = await getCompanyId(id);
@@ -18,14 +18,22 @@ const getAllShipperLocationsByCompanyIdService = async (id) => {
     return locations
 }
 
-const getShipmentsByShipperLocationService = async (id , status) => {
+const getShipmentsByShipperLocationService = async (id, status) => {
 
-    if(status.length === 1 && status[0] === 'pending_carrier'){
-        let shipments = await getSpotLoadsByShipperLocation(id , status)
+    if (status.length === 1 && status[0] === 'pending_carrier') {
+
+        let shipments = await getSpotLoadsByShipperLocation(id, status)
+        shipments = shipments.map(shipment => {
+            if (shipment.bid_deadline) {
+                shipment.bid_deadline = new Date(shipment.bid_deadline).toISOString()
+            }
+            return shipment
+        })
+
         return shipments
     }
 
-    let shipments = await getShipmentsByShipperLocation(id , status)
+    let shipments = await getShipmentsByShipperLocation(id, status)
     return shipments
 }
 
@@ -35,4 +43,4 @@ const getCompanyIdByShipperLocService = async (id) => {
     return companyId
 }
 
-module.exports = {getCompanyIdService , getShipperLocationIdService , getAllShipperLocationsByCompanyIdService , getShipmentsByShipperLocationService , getCompanyIdByShipperLocService}
+module.exports = { getCompanyIdService, getShipperLocationIdService, getAllShipperLocationsByCompanyIdService, getShipmentsByShipperLocationService, getCompanyIdByShipperLocService }
