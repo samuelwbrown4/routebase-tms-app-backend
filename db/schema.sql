@@ -350,5 +350,5 @@ BEFORE INSERT ON shipments
 FOR EACH ROW
 EXECUTE FUNCTION shipment_creation_validation();
 
-ALTER DATABASE current_database() SET timezone TO 'UTC';
+
 
