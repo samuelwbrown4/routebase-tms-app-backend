@@ -117,6 +117,13 @@ INSERT INTO customer_locations (id, customer_id, name, address, city, state, zip
 
 
 
+  INSERT INTO suppliers (id, company_id, name, address, city, state, zip_code, country, latitude, longitude) VALUES
+  ('b1000000-0000-0000-0000-000000000001', 'c1000000-0000-0000-0000-000000000001', 'MedTech Manufacturing Co.', '500 Industrial Pkwy', 'Indianapolis', 'IN', '46201', 'USA', 39.768403, -86.158068),
+  ('b1000000-0000-0000-0000-000000000002', 'c1000000-0000-0000-0000-000000000001', 'BioSource Supply Group',    '1200 Commerce Blvd',  'Memphis',      'TN', '38101', 'USA', 35.149534, -90.048981),
+  ('b1000000-0000-0000-0000-000000000003', 'c1000000-0000-0000-0000-000000000001', 'Apex Medical Components',   '3400 Innovation Dr',  'Minneapolis',  'MN', '55401', 'USA', 44.977753, -93.265011);
+
+
+
 
 
 

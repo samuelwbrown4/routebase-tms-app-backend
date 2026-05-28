@@ -7,6 +7,21 @@ CREATE TYPE shipment_events_type AS ENUM ('routed' , 'picked_up', 'in_transit', 
 CREATE TYPE shipment_type AS ENUM ('spot' , 'contract');
 CREATE TYPE bid_status  as ENUM ('active' , 'expired' , 'accepted' , 'rejected');
 CREATE TYPE contract_status AS ENUM ('pending' ,'active', 'expired' , 'rejected', 'terminated');
+CREATE TYPE direction as ENUM ('inbound' , 'outbound');
+
+CREATE OR REPLACE FUNCTION order_creation_validation()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.direction_category = 'outbound' AND NOT EXISTS (SELECT 1 FROM shipper_locations WHERE id = NEW.origin_id)
+    THEN RAISE EXCEPTION 'Outbound orders must originate from a shipper location';
+    END IF;
+
+    IF NEW.direction_category = 'inbound' AND NOT EXISTS (SELECT 1 FROM shipper_locations WHERE id = NEW.destination_id)
+    THEN RAISE EXCEPTION 'Inbound orders must deliver to a shipper location';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION set_transit_start_time()
 RETURNS TRIGGER AS $$
@@ -100,25 +115,18 @@ CREATE TABLE customers (
 
 CREATE TABLE suppliers (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    address VARCHAR(255) NOT NULL,
-    city VARCHAR(255) NOT NULL,
-    state VARCHAR(255) NOT NULL,
-    zip_code VARCHAR(10) NOT NULL,
-    country VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE supplier_locations (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    supplier_id UUID NOT NULL,
+    company_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     address VARCHAR(255) NOT NULL,
     city VARCHAR(255) NOT NULL,
     state VARCHAR(255) NOT NULL,
     zip_code VARCHAR(10) NOT NULL,
     country VARCHAR(255) NOT NULL,
-    CONSTRAINT fk_supplier_id FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
+    latitude DECIMAL(10, 6) NOT NULL,
+    longitude DECIMAL(10, 6) NOT NULL,
+    CONSTRAINT fk_company_id FOREIGN KEY (company_id) REFERENCES companies(id)
 );
+
 
 CREATE TABLE customer_locations (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -186,6 +194,8 @@ CREATE TABLE equipment_types (
 
 CREATE TABLE shipments (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    company_id UUID NOT NULL,
+    direction_category direction NOT NULL,
     shipment_number VARCHAR(255) NOT NULL UNIQUE,
     shipment_type shipment_type NOT NULL,
     bid_deadline TIMESTAMP,
@@ -208,11 +218,10 @@ CREATE TABLE shipments (
     route_time_seconds DECIMAL(10,3),
     current_position JSONB,
     near_destination BOOLEAN DEFAULT FALSE,
-    CONSTRAINT fk_origin_id FOREIGN KEY (origin_id) REFERENCES shipper_locations(id),
-    CONSTRAINT fk_destination_id FOREIGN KEY (destination_id) REFERENCES customer_locations(id),
     CONSTRAINT fk_carrier_id FOREIGN KEY (carrier_id) REFERENCES carriers(id),
     CONSTRAINT fk_planned_by_user_id FOREIGN KEY (planned_by_user_id) REFERENCES shipper_users(id),
-    CONSTRAINT fk_equipment_type_id FOREIGN KEY (equipment_type_id) REFERENCES equipment_types(id)
+    CONSTRAINT fk_equipment_type_id FOREIGN KEY (equipment_type_id) REFERENCES equipment_types(id),
+    CONSTRAINT fk_company_id FOREIGN KEY (company_id) REFERENCES companies(id)
 );
 
 CREATE TABLE spot_bids (
@@ -228,11 +237,14 @@ CREATE TABLE spot_bids (
 
 CREATE TABLE orders (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    customer_id UUID NOT NULL,
+    company_id UUID NOT NULL,
+    direction_category direction NOT NULL,
+    customer_id UUID,
+    supplier_id UUID,
     origin_id UUID NOT NULL,
     destination_id UUID NOT NULL,
     order_number VARCHAR(255) NOT NULL UNIQUE,
-    customer_po_number VARCHAR(255) NOT NULL,
+    customer_po_number VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     requested_ship_date DATE NOT NULL,
     order_status order_status NOT NULL,
@@ -240,8 +252,7 @@ CREATE TABLE orders (
     order_line_items JSONB NOT NULL,
     synced BOOLEAN DEFAULT TRUE,  
     CONSTRAINT fk_customer_id FOREIGN KEY (customer_id) REFERENCES customers(id),
-    CONSTRAINT fk_origin_id FOREIGN KEY (origin_id) REFERENCES shipper_locations(id),
-    CONSTRAINT fk_destination_id FOREIGN KEY (destination_id) REFERENCES customer_locations(id)
+    CONSTRAINT fk_company_id FOREIGN KEY (company_id) REFERENCES companies(id)
 );
 
 CREATE TABLE shipment_events (
@@ -349,6 +360,11 @@ CREATE TRIGGER trigger_shipment_creation_validation
 BEFORE INSERT ON shipments
 FOR EACH ROW
 EXECUTE FUNCTION shipment_creation_validation();
+
+CREATE TRIGGER trigger_order_creation_validation
+BEFORE INSERT ON orders
+FOR EACH ROW
+EXECUTE FUNCTION order_creation_validation();
 
 
 
