@@ -59,16 +59,22 @@ const getShipmentsByShipperLocation = async (id , status ) => {
             
             shipments.id,
             shipments.shipment_number,
-            shipper_locations.name AS origin,
-            shipper_locations.address AS origin_address,
-            shipper_locations.city AS origin_city,
-            shipper_locations.state AS origin_state,
-            shipper_locations.zip_code AS origin_zip,
-            customer_locations.name AS destination,
-            customer_locations.address AS destination_address,
-            customer_locations.city AS destination_city,
-            customer_locations.state AS destination_state,
-            customer_locations.zip_code AS destination_zip,
+            shipments.direction_category,
+            shipper_locations.name AS shipper_name,
+            shipper_locations.address AS shipper_address,
+            shipper_locations.city AS shipper_city,
+            shipper_locations.state AS shipper_state,
+            shipper_locations.zip_code AS shipper_zip,
+            suppliers.name AS supplier_name,
+            suppliers.address AS supplier_address,
+            suppliers.city AS supplier_city,
+            suppliers.state AS supplier_state,
+            suppliers.zip_code AS supplier_zip,
+            customer_locations.name AS customer_name,
+            customer_locations.address AS customer_address,
+            customer_locations.city AS customer_city,
+            customer_locations.state AS customer_state,
+            customer_locations.zip_code AS customer_zip,
             shipments.equipment_type_id,
             shipments.status,
             shipments.total_weight,
@@ -82,10 +88,18 @@ const getShipmentsByShipperLocation = async (id , status ) => {
             FROM shipments 
 
            
-            JOIN shipper_locations ON shipper_locations.id = shipments.origin_id
-            JOIN customer_locations ON customer_locations.id = shipments.destination_id
+            LEFT JOIN shipper_locations ON shipper_locations.id = CASE
+                WHEN shipments.direction_category = 'outbound'
+                    THEN shipments.origin_id
+                    ELSE shipments.destination_id
+                END
 
-            WHERE shipper_locations.id = $1 
+            LEFT JOIN customer_locations ON customer_locations.id = shipments.destination_id AND shipments.direction_category = 'outbound'
+
+            LEFT JOIN suppliers ON suppliers.id = shipments.origin_id AND shipments.direction_category = 'inbound'
+
+            WHERE shipper_locations.id = $1
+
             AND shipments.status = ANY($2)
             ` , [id , status ])
 
@@ -99,16 +113,22 @@ const getSpotLoadsByShipperLocation = async (id , status) => {
             
             shipments.id,
             shipments.shipment_number,
-            shipper_locations.name AS origin,
-            shipper_locations.address AS origin_address,
-            shipper_locations.city AS origin_city,
-            shipper_locations.state AS origin_state,
-            shipper_locations.zip_code AS origin_zip,
-            customer_locations.name AS destination,
-            customer_locations.address AS destination_address,
-            customer_locations.city AS destination_city,
-            customer_locations.state AS destination_state,
-            customer_locations.zip_code AS destination_zip,
+            shipments.direction_category,
+            shipper_locations.name AS shipper_name,
+            shipper_locations.address AS shipper_address,
+            shipper_locations.city AS shipper_city,
+            shipper_locations.state AS shipper_state,
+            shipper_locations.zip_code AS shipper_zip,
+            customer_locations.name AS customer_name,
+            customer_locations.address AS customer_address,
+            customer_locations.city AS customer_city,
+            customer_locations.state AS customer_state,
+            customer_locations.zip_code AS customer_zip,
+            suppliers.name AS supplier_name,
+            suppliers.address AS supplier_address,
+            suppliers.city AS supplier_city,
+            suppliers.state AS supplier_state,
+            suppliers.zip_code AS supplier_zip,
             shipments.equipment_type_id,
             shipments.status,
             shipments.total_weight,
@@ -132,8 +152,16 @@ const getSpotLoadsByShipperLocation = async (id , status) => {
             FROM shipments 
 
            
-            JOIN shipper_locations ON shipper_locations.id = shipments.origin_id
-            JOIN customer_locations ON customer_locations.id = shipments.destination_id
+            LEFT JOIN shipper_locations ON shipper_locations.id = CASE
+                WHEN shipments.direction_category = 'outbound'
+                THEN shipments.origin_id
+                ELSE shipments.destination_id
+            END
+
+            LEFT JOIN customer_locations ON customer_locations.id = shipments.destination_id AND shipments.direction_category = 'outbound'
+
+            LEFT JOIN suppliers on suppliers.id = shipments.origin_id AND shipments.direction_category = 'inbound'
+
             LEFT JOIN spot_bids ON spot_bids.shipment_id = shipments.id
             LEFT JOIN carriers ON spot_bids.carrier_id = carriers.id
 
@@ -161,7 +189,13 @@ const getSpotLoadsByShipperLocation = async (id , status) => {
             shipments.actual_pickup_date,
             shipments.actual_delivery_date,
             shipments.bid_deadline,
-            shipments.shipment_type
+            shipments.shipment_type,
+            shipments.direction_category,
+            suppliers.name,
+            suppliers.address,
+            suppliers.city,
+            suppliers.state,
+            suppliers.zip_code
 
         ` , [id , status]);
 

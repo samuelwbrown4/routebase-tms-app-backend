@@ -6,15 +6,15 @@ const {getCarrierIdByUserService} = require('../services/carriers.service')
 
 const createShipment = async (req, res) => {
     try {
-        const { originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance, rate, expiry, shipmentType } = req.body
+        const { originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance, rate, expiry, shipmentType , companyId , directionCategory } = req.body
 
         const bidDeadline = new Date(Date.now() + (parseInt(expiry) * (60 * 60 * 1000)))
 
-        const carrierValue = carrier || null;
-        const rateValue = rate || null;
-        const bidDeadlineValue = bidDeadline || null;
+        const carrierValue = shipmentType === 'contract' ? carrier : null;
+        const rateValue = shipmentType === 'contract' ? rate : null;
+        const bidDeadlineValue = shipmentType === 'spot' ? bidDeadline : null;
 
-        const shipment = await createShipmentService(originId, destinationId, carrierValue, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance, rateValue, shipmentType, bidDeadlineValue)
+        const shipment = await createShipmentService(originId, destinationId, carrierValue, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance, rateValue, shipmentType, bidDeadlineValue , companyId , directionCategory)
 
         res.status(200).json({ shipment })
     } catch (err) {
@@ -57,7 +57,7 @@ const updateShipment = async (req, res) => {
         if (eventType === 'routed') {
             let coords = await getShipmentCoordsByIdService(shipmentId)
 
-            let response = await fetch(`${process.env.ROUTING_API_PREFIX}waypoints=${coords.origin_lat},${coords.origin_lon}|${coords.dest_lat},${coords.dest_lon}&mode=drive&apiKey=${process.env.GEOAPIFY_API_KEY}`, {
+            let response = await fetch(`${process.env.ROUTING_API_PREFIX}waypoints=${coords.direction_category === 'outbound' ? coords.shipper_lat : coords.supplier_lat},${coords.direction_category === 'outbound' ? coords.shipper_lon : coords.supplier_lon}|${coords.direction_category === 'outbound' ? coords.customer_lat : coords.shipper_lat},${coords.direction_category === 'outbound' ? coords.customer_lon : coords.shipper_lon}&mode=drive&apiKey=${process.env.GEOAPIFY_API_KEY}`, {
                 headers: {
                     'Content-Type': 'application/json'
                 }

@@ -1,7 +1,7 @@
 const {createShipment , getUndeliveredShipments , getShipmentsByCarrierId , updateShipment , getShipmentCoordsById , getShipmentById , getCarrierShipmentByShipmentNumber , getShipperShipmentByShipmentNumber , getShipmentByShipmentNumber , shipmentSearch , carrierGetSpotShipments , makeSpotOffer , acceptSpotOffer , resetBidDeadline} = require('../repos/shipments.repo')
 
-const createShipmentService = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId,  orders, distance , rate , shipmentStatus , bidDeadline) => {
-    const shipment = await createShipment(originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance , rate , shipmentStatus , bidDeadline);
+const createShipmentService = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId,  orders, distance , rate , shipmentStatus , bidDeadline , companyId , directionCategory) => {
+    const shipment = await createShipment(originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance , rate , shipmentStatus , bidDeadline , companyId , directionCategory);
 
     if (shipment.bid_deadline) {
     shipment.bid_deadline = new Date(shipment.bid_deadline).toISOString()

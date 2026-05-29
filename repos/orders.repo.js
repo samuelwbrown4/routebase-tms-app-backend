@@ -49,6 +49,7 @@ const getOrdersByStatus = async (status , shipperLocation) => {
         SELECT 
                 orders.id,
                 orders.order_number, 
+                orders.company_id,
                 orders.origin_id,
                 orders.requested_ship_date,
                 orders.destination_id,
@@ -92,7 +93,7 @@ const getOrdersByStatus = async (status , shipperLocation) => {
 
             
             WHERE orders.order_status = $1 
-            AND orders.company_id = (SELECT company_id FROM shipper_locations WHERE id = $2)
+            AND shipper_locations.id = $2
                 
             ` , [status , shipperLocation])
 

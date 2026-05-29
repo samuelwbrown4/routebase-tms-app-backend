@@ -1,6 +1,6 @@
 const pool = require('../db/pool');
 
-const createShipment = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance, rate, shipmentType, bidDeadline) => {
+const createShipment = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance, rate, shipmentType, bidDeadline , companyId , directionCategory) => {
     try {
 
         await pool.query('BEGIN')
@@ -11,11 +11,11 @@ const createShipment = async (originId, destinationId, carrier, equipmentType, s
 
         let newShipment = await pool.query(`
             INSERT INTO shipments
-            (shipment_number , origin_id , destination_id , carrier_id , equipment_type_id , status , total_weight , requested_pickup_date , requested_delivery_date , planned_by_user_id, distance , rate , shipment_type , bid_deadline) 
+            (shipment_number , origin_id , destination_id , carrier_id , equipment_type_id , status , total_weight , requested_pickup_date , requested_delivery_date , planned_by_user_id, distance , rate , shipment_type , bid_deadline , company_id , direction_category) 
             
-            VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8 , $9 , $10, $11 , $12 , $13 , $14)
+            VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8 , $9 , $10, $11 , $12 , $13 , $14 , $15 , $16)
             
-            RETURNING *` , [shipmentNumber, originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, distance, rate, shipmentType, bidDeadline]);
+            RETURNING *` , [shipmentNumber, originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, distance, rate, shipmentType, bidDeadline , companyId , directionCategory]);
 
 
         await pool.query(`
@@ -55,16 +55,22 @@ const getShipmentsByCarrierId = async (id, status) => {
             
             shipments.id,
             shipments.shipment_number,
-            shipper_locations.name AS origin,
-            shipper_locations.address AS origin_address,
-            shipper_locations.city AS origin_city,
-            shipper_locations.state AS origin_state,
-            shipper_locations.zip_code AS origin_zip,
-            customer_locations.name AS destination,
-            customer_locations.address AS destination_address,
-            customer_locations.city AS destination_city,
-            customer_locations.state AS destination_state,
-            customer_locations.zip_code AS destination_zip,
+            shipments.direction_category,
+            shipper_locations.name AS shipper_name,
+            shipper_locations.address AS shipper_address,
+            shipper_locations.city AS shipper_city,
+            shipper_locations.state AS shipper_state,
+            shipper_locations.zip_code AS shipper_zip,
+            suppliers.name AS supplier_name,
+            suppliers.address AS supplier_address,
+            suppliers.city AS supplier_city,
+            suppliers.state AS supplier_state,
+            suppliers.zip_code AS supplier_zip,
+            customer_locations.name AS customer_name,
+            customer_locations.address AS customer_address,
+            customer_locations.city AS customer_city,
+            customer_locations.state AS customer_state,
+            customer_locations.zip_code AS customer_zip,
             shipments.equipment_type_id,
             shipments.status,
             shipments.total_weight,
@@ -77,8 +83,15 @@ const getShipmentsByCarrierId = async (id, status) => {
             FROM shipments 
 
             JOIN carrier_users ON carrier_users.carrier_id = shipments.carrier_id
-            JOIN shipper_locations ON shipper_locations.id = shipments.origin_id
-            JOIN customer_locations ON customer_locations.id = shipments.destination_id
+            LEFT JOIN shipper_locations ON shipper_locations.id = CASE
+                WHEN shipments.direction_category = 'outbound'
+                    THEN shipments.origin_id
+                    ELSE shipments.destination_id
+                END
+
+            LEFT JOIN customer_locations ON customer_locations.id = shipments.destination_id AND shipments.direction_category = 'outbound'
+
+            LEFT JOIN suppliers ON suppliers.id = shipments.origin_id AND shipments.direction_category = 'inbound'
 
             WHERE carrier_users.id = $1 
             AND shipments.status = ANY($2)
@@ -92,16 +105,21 @@ const carrierGetSpotShipments = async (status) => {
         SELECT
         shipments.id,
             shipments.shipment_number,
-            shipper_locations.name AS origin,
-            shipper_locations.address AS origin_address,
-            shipper_locations.city AS origin_city,
-            shipper_locations.state AS origin_state,
-            shipper_locations.zip_code AS origin_zip,
-            customer_locations.name AS destination,
-            customer_locations.address AS destination_address,
-            customer_locations.city AS destination_city,
-            customer_locations.state AS destination_state,
-            customer_locations.zip_code AS destination_zip,
+            shipper_locations.name AS shipper_name,
+            shipper_locations.address AS shipper_address,
+            shipper_locations.city AS shipper_city,
+            shipper_locations.state AS shipper_state,
+            shipper_locations.zip_code AS shipper_zip,
+            suppliers.name AS supplier_name,
+            suppliers.address AS supplier_address,
+            suppliers.city AS supplier_city,
+            suppliers.state AS supplier_state,
+            suppliers.zip_code AS supplier_zip,
+            customer_locations.name AS customer_name,
+            customer_locations.address AS customer_address,
+            customer_locations.city AS customer_city,
+            customer_locations.state AS customer_state,
+            customer_locations.zip_code AS customer_zip,
             shipments.equipment_type_id,
             shipments.status,
             shipments.total_weight,
@@ -112,6 +130,7 @@ const carrierGetSpotShipments = async (status) => {
             shipments.near_destination,
             shipments.bid_deadline,
             shipments.shipment_type,
+            shipments.direction_category,
             json_agg(
                 json_build_object(
                     'shipment_number' , shipments.shipment_number,
@@ -124,8 +143,18 @@ const carrierGetSpotShipments = async (status) => {
 
             FROM shipments 
 
-            JOIN shipper_locations ON shipper_locations.id = shipments.origin_id
-            JOIN customer_locations ON customer_locations.id = shipments.destination_id
+            LEFT JOIN shipper_locations ON shipper_locations.id = CASE
+                WHEN shipments.direction_category = 'outbound' 
+                    THEN shipments.origin_id 
+                    ELSE shipments.destination_id
+                END
+                
+            LEFT JOIN customer_locations ON customer_locations.id = shipments.destination_id
+                AND shipments.direction_category = 'outbound'
+
+            LEFT JOIN suppliers ON suppliers.id = shipments.origin_id 
+                AND shipments.direction_category = 'inbound'
+                
             LEFT JOIN spot_bids ON spot_bids.shipment_id = shipments.id
             LEFT JOIN carriers ON spot_bids.carrier_id = carriers.id
 
@@ -153,7 +182,13 @@ const carrierGetSpotShipments = async (status) => {
             shipments.actual_delivery_date,
             shipments.near_destination,
             shipments.bid_deadline,
-            shipments.shipment_type
+            shipments.shipment_type,
+            suppliers.name,
+            suppliers.address,
+            suppliers.city,
+            suppliers.state,
+            suppliers.zip_code,
+            shipments.direction_category
         `, [status]);
     return response.rows
 }
@@ -216,14 +251,24 @@ const updateShipment = async (shipmentId, date, userId, eventType, routeGeometry
 const getShipmentCoordsById = async (id) => {
     let coords = await pool.query(`
         SELECT 
-        shipper_locations.latitude AS origin_lat,
-        shipper_locations.longitude AS origin_lon,
-        customer_locations.latitude AS dest_lat,
-        customer_locations.longitude AS dest_lon
+        shipments.direction_category,
+        shipper_locations.latitude AS shipper_lat,
+        shipper_locations.longitude AS shipper_lon,
+        customer_locations.latitude AS customer_lat,
+        customer_locations.longitude AS customer_lon,
+        suppliers.latitude AS supplier_lat,
+        suppliers.longitude AS supplier_lon
 
         FROM shipments 
-        JOIN shipper_locations ON shipper_locations.id = shipments.origin_id
-        JOIN customer_locations ON customer_locations.id = shipments.destination_id
+        LEFT JOIN shipper_locations ON shipper_locations.id = CASE
+            WHEN shipments.direction_category = 'outbound'
+            THEN shipments.origin_id
+            ELSE shipments.destination_id
+        END
+        
+        LEFT JOIN customer_locations ON customer_locations.id = shipments.destination_id AND shipments.direction_category = 'outbound'
+
+        LEFT JOIN suppliers ON suppliers.id = shipments.origin_id AND shipments.direction_category = 'inbound'
 
         WHERE shipments.id = $1
         `, [id])
@@ -245,19 +290,25 @@ const getShipmentById = async (id) => {
             shipments.current_position,
             carriers.name AS carrier_name,
             carriers.scac AS carrier_scac,
-            shipper_locations.name AS origin,
-            shipper_locations.address AS origin_address,
-            shipper_locations.city AS origin_city,
-            shipper_locations.state AS origin_state,
-            shipper_locations.zip_code AS origin_zip,
-            customer_locations.name AS destination,
-            customer_locations.address AS destination_address,
-            customer_locations.city AS destination_city,
-            customer_locations.state AS destination_state,
-            customer_locations.zip_code AS destination_zip,
+            shipper_locations.name AS shipper_name,
+            shipper_locations.address AS shipper_address,
+            shipper_locations.city AS shipper_city,
+            shipper_locations.state AS shipper_state,
+            shipper_locations.zip_code AS shipper_zip,
+            suppliers.name AS supplier_name,
+            suppliers.address AS supplier_address,
+            suppliers.city AS supplier_city,
+            suppliers.state AS supplier_state,
+            suppliers.zip_code AS supplier_zip,
+            customer_locations.name AS customer_name,
+            customer_locations.address AS customer_address,
+            customer_locations.city AS customer_city,
+            customer_locations.state AS customer_state,
+            customer_locations.zip_code AS customer_zip,
             shipments.equipment_type_id,
             shipments.status,
             shipments.total_weight,
+            shipments.direction_category,
             json_agg(
                 json_build_object(
                     'id',orders.id,
@@ -271,9 +322,18 @@ const getShipmentById = async (id) => {
         
         FROM shipments 
 
-        JOIN shipper_locations ON shipments.origin_id = shipper_locations.id
+        LEFT JOIN shipper_locations ON shipper_locations.id = CASE
+            WHEN shipments.direction_category = 'outbound'
+                THEN shipments.origin_id
+                ELSE shipments.destination_id
+            END
+
         JOIN carriers ON shipments.carrier_id = carriers.id
-        JOIN customer_locations ON customer_locations.id = shipments.destination_id
+
+        LEFT JOIN customer_locations ON customer_locations.id = shipments.destination_id AND shipments.direction_category = 'outbound'
+
+        LEFT JOIN suppliers ON suppliers.id = shipments.origin_id AND shipments.direction_category = 'inbound'
+
         JOIN shipment_orders ON shipment_orders.shipment_id = shipments.id
         JOIN orders ON orders.id = shipment_orders.order_id
         
@@ -303,9 +363,13 @@ const getShipmentById = async (id) => {
             shipments.distance,
             shipments.rate,
             shipments.carrier_id,
-            shipments.origin_id
-            
-            
+            shipments.origin_id,
+            shipments.direction_category,
+            suppliers.name,
+            suppliers.address,
+            suppliers.city,
+            suppliers.state,
+            suppliers.zip_code
         `, [id])
 
     return shipment.rows[0]
@@ -343,7 +407,7 @@ const shipmentSearch = async (id, searchValue) => {
         FROM
             shipments
         WHERE
-            shipments.origin_id = $1 AND LOWER(shipments.shipment_number) LIKE $2
+            (shipments.origin_id = $1 OR shipments.destination_id = $1) AND LOWER(shipments.shipment_number) LIKE $2
         `, [id, searchValue]);
 
     return shipments.rows;

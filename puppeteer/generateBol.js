@@ -16,13 +16,13 @@ function generateBolHtml(shipment) {
         const productRows = []
 
         shipment.orders.forEach((order) => {
-            let orderLineItems = order.line_items.map(line_item => `
+            let orderLineItems = order.order_line_items.map(line_item => `
         <tr>
-            <td>${line_item.material_number}</td>
+            <td>${line_item.materialNumber}</td>
             <td>${line_item.quantity}</td>
             <td>${line_item.weight}</td>
             <td>${line_item.description}</td>
-            <td>${line_item.freight_class}</td>
+            <td>${line_item.freightClass}</td>
         </tr>
         `).join('')
 
@@ -142,15 +142,15 @@ function generateBolHtml(shipment) {
             <div id="top-left">
                 <div class="top-left-sub">
                     <h4>Ship From</h4>
-                    <span><b>Name:</b>${shipment.origin}</span>
-                    <span><b>Address:</b>${shipment.origin_address}</span>
-                    <span><b>City/State/Zip:</b>${shipment.origin_city}, ${shipment.origin_state} ${shipment.origin_zip}</span>
+                    <span><b>Name:</b>${shipment.direction_category === 'outbound' ? shipment.shipper_name : shipment.supplier_name}</span>
+                    <span><b>Address:</b>${shipment.direction_category === 'outbound' ? shipment.shipper_address : shipment.supplier_address}</span>
+                    <span><b>City/State/Zip:</b>${shipment.direction_category === 'outbound' ? shipment.shipper_city : shipment.supplier_city}, ${shipment.direction_category === 'outbound' ? shipment.shipper_state : shipment.supplier_state} ${shipment.direction_category === 'outbound' ? shipment.shipper_zip : shipment.supplier_zip}</span>
                 </div>
                 <div class="top-left-sub">
                     <h4>Ship To</h4>
-                    <span><b>Name:</b>${shipment.destination}</span>
-                    <span><b>Address:</b>${shipment.destination_address}</span>
-                    <span><b>City/State/Zip:</b>${shipment.destination_city}, ${shipment.destination_state} ${shipment.destination_zip}</span>
+                    <span><b>Name:</b>${shipment.direction_category === 'outbound' ? shipment.customer_name : shipment.shipper_name}</span>
+                    <span><b>Address:</b>${shipment.direction_category === 'outbound' ? shipment.customer_address : shipment.shipper_address}</span>
+                    <span><b>City/State/Zip:</b>${shipment.direction_category === 'outbound' ? shipment.customer_city : shipment.shipper_city}, ${shipment.direction_category === 'outbound' ? shipment.customer_state : shipment.shipper_state} ${shipment.direction_category === 'outbound' ? shipment.customer_zip : shipment.shipper_zip}</span>
                 </div>
             </div>
             <div id="top-right">
