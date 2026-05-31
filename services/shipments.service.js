@@ -1,4 +1,4 @@
-const {createShipment , getUndeliveredShipments , getShipmentsByCarrierId , updateShipment , getShipmentCoordsById , getShipmentById , getCarrierShipmentByShipmentNumber , getShipperShipmentByShipmentNumber , getShipmentByShipmentNumber , shipmentSearch , carrierGetSpotShipments , makeSpotOffer , acceptSpotOffer , resetBidDeadline} = require('../repos/shipments.repo')
+const {createShipment , getUndeliveredShipments , getShipmentsByCarrierId , updateShipment , getShipmentCoordsById , getShipmentById , getCarrierShipmentByShipmentNumber , getShipperShipmentByShipmentNumber , getShipmentByShipmentNumber , shipmentSearch , carrierGetSpotShipments , makeSpotOffer , acceptSpotOffer , resetBidDeadline , getUpcomingShipments} = require('../repos/shipments.repo')
 
 const createShipmentService = async (originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId,  orders, distance , rate , shipmentStatus , bidDeadline , companyId , directionCategory) => {
     const shipment = await createShipment(originId, destinationId, carrier, equipmentType, status, totalWeight, pickDate, dropDate, userId, orders, distance , rate , shipmentStatus , bidDeadline , companyId , directionCategory);
@@ -88,4 +88,10 @@ const resetBidDeadlineService = async (shipmentId , bidDeadline) => {
     return updatedShipment;
 }
 
-module.exports = {createShipmentService , getUndeliveredShipmentsService , getShipmentsByCarrierIdService , updateShipmentService , getShipmentCoordsByIdService , getShipmentByIdService , getCarrierShipmentByShipmentNumberService , getShipperShipmentByShipmentNumberService , getShipmentByShipmentNumberService , shipmentSearchService , makeSpotOfferService , acceptSpotOfferService , resetBidDeadlineService}
+const getUpcomingShipmentsService = async (id) => {
+    const shipments = await getUpcomingShipments(id)
+
+    return shipments
+}
+
+module.exports = {createShipmentService , getUndeliveredShipmentsService , getShipmentsByCarrierIdService , updateShipmentService , getShipmentCoordsByIdService , getShipmentByIdService , getCarrierShipmentByShipmentNumberService , getShipperShipmentByShipmentNumberService , getShipmentByShipmentNumberService , shipmentSearchService , makeSpotOfferService , acceptSpotOfferService , resetBidDeadlineService , getUpcomingShipmentsService}

@@ -101,6 +101,61 @@ const getOrdersByStatus = async (status , shipperLocation) => {
         
 }
 
+const getOrdersByDateRange = async ( id) => {
+    const orders = await pool.query(`
+        SELECT  
+            orders.id,
+                orders.order_number, 
+                orders.company_id,
+                orders.origin_id,
+                orders.requested_ship_date,
+                orders.destination_id,
+                orders.order_line_items,
+                orders.weight,
+                orders.direction_category,
+                suppliers.name AS supplier_name,
+                suppliers.address AS supplier_address,
+                suppliers.city AS supplier_city,
+                suppliers.state AS supplier_state,
+                suppliers.latitude AS supplier_lat,
+                suppliers.longitude AS supplier_long,
+                shipper_locations.name AS shipper_location_name ,
+                shipper_locations.address AS shipper_address,
+                shipper_locations.city AS shipper_city,
+                shipper_locations.state AS shipper_state,
+                shipper_locations.latitude AS shipper_lat,
+                shipper_locations.longitude AS shipper_long, 
+                customer_locations.name AS customer_location_name ,
+                customer_locations.address AS customer_address,
+                customer_locations.city AS customer_city,
+                customer_locations.state AS customer_state,
+                customer_locations.latitude AS customer_lat,
+                customer_locations.longitude AS customer_long 
+                
+            
+            FROM orders
+            
+            LEFT JOIN shipper_locations ON shipper_locations.id = CASE
+                WHEN orders.direction_category = 'outbound' 
+                    THEN orders.origin_id
+                    ELSE orders.destination_id
+                END
+
+            LEFT JOIN customer_locations ON orders.destination_id = customer_locations.id 
+            AND orders.direction_category = 'outbound'
+
+            LEFT JOIN suppliers ON orders.origin_id = suppliers.id 
+            AND orders.direction_category = 'inbound'
+
+            WHERE orders.order_status = 'unplanned' 
+            AND shipper_locations.id = $1
+            AND orders.requested_ship_date >= CURRENT_DATE
+            AND orders.requested_ship_date <= CURRENT_DATE + INTERVAL '7 days'
+        `,[id])
+
+        return orders.rows
+}
+
 const getOrderLineItems = async (orderId) => {
     const lineItems = await pool.query(`
             SELECT 
@@ -140,4 +195,4 @@ const createOrder = async (payload) => {
         return order.rows[0]
 }
 
-module.exports = {getAllOrders , getOrderLineItems , getOrdersByStatus , createOrder}
+module.exports = {getAllOrders , getOrderLineItems , getOrdersByStatus , createOrder ,getOrdersByDateRange}

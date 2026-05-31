@@ -60,6 +60,7 @@ const getShipmentsByShipperLocation = async (id , status ) => {
             shipments.id,
             shipments.shipment_number,
             shipments.direction_category,
+            shipments.current_position,
             shipper_locations.name AS shipper_name,
             shipper_locations.address AS shipper_address,
             shipper_locations.city AS shipper_city,

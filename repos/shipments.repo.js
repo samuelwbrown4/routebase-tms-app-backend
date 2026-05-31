@@ -56,6 +56,7 @@ const getShipmentsByCarrierId = async (id, status) => {
             shipments.id,
             shipments.shipment_number,
             shipments.direction_category,
+            shipments.current_position,
             shipper_locations.name AS shipper_name,
             shipper_locations.address AS shipper_address,
             shipper_locations.city AS shipper_city,
@@ -486,4 +487,44 @@ const resetBidDeadline = async (shipmentId , bidDeadline) => {
     }
 }
 
-module.exports = { createShipment, getUndeliveredShipments, getShipmentsByCarrierId, updateShipment, getShipmentCoordsById, getShipmentById, getCarrierShipmentByShipmentNumber, getShipperShipmentByShipmentNumber, getShipmentByShipmentNumber, shipmentSearch , carrierGetSpotShipments , makeSpotOffer , acceptSpotOffer , resetBidDeadline}
+const getUpcomingShipments = async (id) => {
+    const shipments = await pool.query(`
+        SELECT  
+            shipments.id,
+            shipments.shipment_number,
+            shipments.status,
+            shipments.requested_pickup_date,
+            shipments.requested_delivery_date,
+            shipments.direction_category,
+            shipments.total_weight,
+            carriers.name AS carrier_name,
+            shipper_locations.name AS shipper_name,
+            customer_locations.name AS customer_name,
+            suppliers.name AS supplier_name
+
+        FROM shipments
+
+        JOIN carriers ON carriers.id = shipments.carrier_id
+
+        LEFT JOIN shipper_locations ON shipper_locations.id = CASE
+            WHEN shipments.direction_category = 'outbound' 
+                THEN shipments.origin_id
+                ELSE shipments.destination_id
+            END
+
+        LEFT JOIN customer_locations ON shipments.destination_id = customer_locations.id 
+            AND shipments.direction_category = 'outbound'
+
+        LEFT JOIN suppliers ON shipments.origin_id = suppliers.id 
+            AND shipments.direction_category = 'inbound'
+
+        WHERE shipments.status IN ('planned', 'routed')
+        AND shipper_locations.id = $1
+        AND shipments.requested_pickup_date >= CURRENT_DATE
+        AND shipments.requested_pickup_date <= CURRENT_DATE + INTERVAL '7 days'
+    `, [id])
+
+    return shipments.rows
+}
+
+module.exports = { createShipment, getUndeliveredShipments, getShipmentsByCarrierId, updateShipment, getShipmentCoordsById, getShipmentById, getCarrierShipmentByShipmentNumber, getShipperShipmentByShipmentNumber, getShipmentByShipmentNumber, shipmentSearch , carrierGetSpotShipments , makeSpotOffer , acceptSpotOffer , resetBidDeadline , getUpcomingShipments}

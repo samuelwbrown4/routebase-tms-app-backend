@@ -1,4 +1,4 @@
-const { createShipmentService, getUndeliveredShipmentsService, getShipmentsByCarrierIdService, updateShipmentService, getShipmentCoordsByIdService, getShipmentByIdService, shipmentSearchService , makeSpotOfferService, acceptSpotOfferService, resetBidDeadlineService } = require('../services/shipments.service')
+const { createShipmentService, getUndeliveredShipmentsService, getShipmentsByCarrierIdService, updateShipmentService, getShipmentCoordsByIdService, getShipmentByIdService, shipmentSearchService , makeSpotOfferService, acceptSpotOfferService, resetBidDeadlineService , getUpcomingShipmentsService} = require('../services/shipments.service')
 
 const { getShipperLocationIdService } = require('../services/shippers.service')
 
@@ -141,4 +141,16 @@ const resetBidDeadline = async (req , res) => {
     }
 }
 
-module.exports = { createShipment, getUndeliveredShipments, getShipmentsByCarrierId, updateShipment, getShipmentById, shipmentSearch , makeSpotOffer , acceptSpotOffer , resetBidDeadline}
+const getUpcomingShipments = async (req , res) => {
+    const {id} = req.user
+    
+    try{
+        const shipperLocationId = await getShipperLocationIdService(id)
+        const shipments = await getUpcomingShipmentsService(shipperLocationId)
+        res.status(200).json({shipments})
+    }catch(err){
+        res.status(500).json({error: err.message})
+    }
+}
+
+module.exports = { createShipment, getUndeliveredShipments, getShipmentsByCarrierId, updateShipment, getShipmentById, shipmentSearch , makeSpotOffer , acceptSpotOffer , resetBidDeadline , getUpcomingShipments}

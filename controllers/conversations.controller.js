@@ -36,7 +36,7 @@ const createConversation = async (req, res) => {
         const shipment = await getShipmentByShipmentNumberService(shipmentNumber)
 
         const carrierId = shipment.carrier_id
-        const shipperLocId = shipment.origin_id;
+        const shipperLocId = shipment.direction_category === 'outbound'? shipment.origin_id : shipment.destination_id;
 
         const shipperId = await getCompanyIdByShipperLocService(shipperLocId)
 
