@@ -17,4 +17,28 @@ const getCarrierIdByUser = async (id) => {
     return carrier.rows[0].carrier_id
 }
 
-module.exports = {getAllCarriers , getCarrierIdByUser}
+const editCarrier = async (carrierId , payload) => {
+       const result = await pool.query(`
+        UPDATE carriers
+        SET 
+            name = COALESCE($1, name),
+            scac = COALESCE($2, scac),
+            address = COALESCE($3, address)
+        WHERE id = $4
+        RETURNING *
+    `, [payload.name, payload.scac, payload.address, carrierId])
+
+    return result.rows[0]
+}
+
+const addCarrier = async (payload) => {
+    const result = await pool.query(`
+        INSERT INTO carriers
+        (name , scac , address)
+        VALUES ($1 , $2 , $3)
+        RETURNING *`,[payload.name , payload.scac , payload.address])
+
+        return result.rows[0]
+}
+
+module.exports = {getAllCarriers , getCarrierIdByUser , editCarrier , addCarrier}

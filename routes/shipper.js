@@ -3,12 +3,12 @@ const router = express.Router();
 const pool = require('../db/pool');
 const { requireAdmin, requireAuth } = require('../middleware/auth');
 const { getAllOrders, getOrderLineItems, getOrdersByStatus , getOrdersByDateRange} = require('../controllers/orders.controller');
-const { getAllCarriers } = require('../controllers/carriers.controller');
+const { getAllCarriers , editCarrier , addCarrier} = require('../controllers/carriers.controller');
 const { createShipment, getUndeliveredShipments, getShipmentById, shipmentSearch, acceptSpotOffer } = require('../controllers/shipments.controller');
 const { getRatesByShipperUser, getRateByCarrier } = require('../controllers/rates.controller')
 const { getContractsByShipperUser, deleteContract, updateContractStatus } = require('../controllers/contracts.controller')
 const { getCompanyId, getShipperLocationId, getAllShipperLocationsByCompanyId, getShipmentsByShipperLocation } = require('../controllers/shippers.controller')
-const { createShipperUser, updateNewShipperUser, getAllShipperUsers } = require('../controllers/shipperUsers.controller')
+const { createShipperUser, updateNewShipperUser, getAllShipperUsers , editShipperUser} = require('../controllers/shipperUsers.controller')
 const { getCustomerLocationsByCompanyId, createCustomerLocation } = require('../controllers/customerLocations.controller')
 const { getCustomersByCompanyId } = require('../controllers/customers.controller')
 const { generateBol } = require('../controllers/documents.controller');
@@ -24,7 +24,9 @@ router.get('/shipper-locations/:id', requireAuth, getShipperLocationId)
 
 router.post('/shipper-users', requireAdmin, createShipperUser)
 
-router.patch('/shipper-users/:email', requireAuth, updateNewShipperUser)
+router.patch('/shipper-users/set-password/:email', requireAuth, updateNewShipperUser)
+
+router.patch('/shipper-users/:userId' , requireAuth , requireAdmin , editShipperUser)
 
 router.get('/customers', requireAuth, getCustomersByCompanyId)
 
@@ -39,6 +41,10 @@ router.get('/orders', requireAuth, getOrdersByStatus)
 router.get('/orders/:orderId/line-items', requireAuth, getOrderLineItems)
 
 router.get('/carriers', requireAuth, getAllCarriers)
+
+router.patch('/carriers/edit/:carrierId' , requireAuth , requireAdmin , editCarrier)
+
+router.post('/carriers' , requireAuth , requireAdmin , addCarrier)
 
 router.post('/shipments', requireAdmin, createShipment)
 

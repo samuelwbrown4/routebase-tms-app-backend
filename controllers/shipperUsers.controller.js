@@ -1,4 +1,4 @@
-const { createShipperUserService, getShipperUserByEmailService, updateNewShipperUserService , getAllShipperUsersService } = require('../services/shipperUsers.service');
+const { createShipperUserService, getShipperUserByEmailService, updateNewShipperUserService , getAllShipperUsersService , editShipperUserService} = require('../services/shipperUsers.service');
 const {getCompanyIdService} = require('../services/shippers.service')
 const bcrypt = require('bcrypt');
 const { transporter } = require('../email/mailer');
@@ -6,22 +6,36 @@ const { transporter } = require('../email/mailer');
 
 const createShipperUser = async (req, res) => {
     try {
-        const { locationId, erpId, firstName, lastName, email, phone, role } = req.body
+        const { payload } = req.body
 
-        let newUser = await createShipperUserService(locationId, erpId, firstName, lastName, email, phone, role)
+        let newUser = await createShipperUserService(payload)
         //send email
         if (newUser) {
             await transporter.sendMail({
                 from: process.env.GOOGLE_USER,
-                to: email,
+                to: payload.email,
                 subject: 'Welcome to Routebase! Set your password',
-                text: 'Your account has been created. Please set your password using the provided link. http://localhost:5173/user/create-password'
+                text: 'Your account has been created. Please set your password using the provided link. https://routebase.cloud/user/create-password'
                 
             });
         }
         res.status(200).json({ newUser })
     } catch (err) {
         res.status(500).json({ error: err.message })
+    }
+}
+
+const editShipperUser = async (req , res) => {
+    try{
+        const {payload} = req.body
+        const {userId} = req.params
+        console.log('userId' , userId)
+        payload.userId = userId
+        let editedUser = await editShipperUserService(payload);
+
+        res.status(201).json({editedUser})
+    }catch(err){
+        res.status(500).json({error: err.message})
     }
 }
 
@@ -52,4 +66,4 @@ const getAllShipperUsers = async (req , res) => {
     }
 }
 
-module.exports = { createShipperUser, updateNewShipperUser , getAllShipperUsers }
+module.exports = { createShipperUser, updateNewShipperUser , getAllShipperUsers , editShipperUser}

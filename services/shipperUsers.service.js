@@ -1,9 +1,15 @@
-const {createShipperUser , getShipperUserByEmail , updateNewShipperUser , getAllShipperUsers} = require('../repos/shipperUsers.repo') ;
+const {createShipperUser , getShipperUserByEmail , updateNewShipperUser , getAllShipperUsers , editShipperUser} = require('../repos/shipperUsers.repo') ;
 
-const createShipperUserService = async (locationId, erpId, firstName, lastName, email, phone, role) => {
-    let newUser = await createShipperUser(locationId, erpId, firstName, lastName, email, phone, role);
+const createShipperUserService = async (payload) => {
+    let newUser = await createShipperUser(payload);
 
     return newUser;
+}
+
+const editShipperUserService = async (payload) => {
+    const editedUser = await editShipperUser(payload)
+
+    return editedUser
 }
 
 const getShipperUserByEmailService = async (email) => {
@@ -24,4 +30,4 @@ const getAllShipperUsersService = async (companyId) => {
     return users
 }
 
-module.exports = {createShipperUserService , getShipperUserByEmailService , updateNewShipperUserService , getAllShipperUsersService}
+module.exports = {createShipperUserService , getShipperUserByEmailService , updateNewShipperUserService , getAllShipperUsersService , editShipperUserService}

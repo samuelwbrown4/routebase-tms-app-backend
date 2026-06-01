@@ -1,13 +1,30 @@
 const pool = require('../db/pool');
 
-const createShipperUser = async (locationId , erpId , firstName , lastName , email , phone , role ) => {
+const createShipperUser = async (payload) => {
     let newUser = await pool.query(`
         INSERT INTO shipper_users (location_id , erp_id , first_name , last_name , email , phone_number , role)
         VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7)
         RETURNING *
-        ` , [locationId , erpId , firstName , lastName , email , phone , role])
+        ` , [payload.locationId , payload.erpId , payload.firstName , payload.lastName , payload.email , payload.phone , payload.role])
 
         return newUser.rows[0]
+}
+
+const editShipperUser = async (payload) => {
+    let editedUser = await pool.query(`
+        UPDATE shipper_users 
+        SET location_id = $1,
+            erp_id = $2,
+            first_name = $3,
+            last_name = $4,
+            email = $5,
+            phone_number = $6,
+            role = $7
+
+        WHERE shipper_users.id = $8
+        RETURNING *`,[payload.locationId , payload.erpId , payload.firstName , payload.lastName , payload.email , payload.phone , payload.role , payload.userId]);
+
+    return editedUser.rows[0]
 }
 
 const getShipperUserByEmail = async (email) => {
@@ -54,4 +71,4 @@ const getAllShipperUsers = async (companyId) => {
     return users.rows
 }
 
-module.exports = {createShipperUser , getShipperUserByEmail , updateNewShipperUser , getAllShipperUsers}
+module.exports = {createShipperUser , getShipperUserByEmail , updateNewShipperUser , getAllShipperUsers , editShipperUser}
