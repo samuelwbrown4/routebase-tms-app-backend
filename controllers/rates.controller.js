@@ -1,5 +1,5 @@
 const { getRatesByShipperUserService , getRateByCarrierService } = require('../services/rates.service');
-const {getCompanyIdByShipperLocService} = require('../services/shippers.service')
+const {getCompanyIdByShipperLocService, getShipperLocationIdService} = require('../services/shippers.service')
 
 const getRatesByShipperUser = async (req, res) => {
     try {
@@ -17,8 +17,9 @@ const getRateByCarrier = async (req , res) => {
     try{
         const {id} = req.user;
         const {carrier} = req.params;
-        const {distance , originId} = req.body
-        let companyId = await getCompanyIdByShipperLocService(originId)
+        const {distance} = req.body
+        let shipperLocationId = await getShipperLocationIdService(id)
+        let companyId = await getCompanyIdByShipperLocService(shipperLocationId)
         let rateDetails = await getRateByCarrierService(carrier , companyId , distance)
         res.status(200).json({rateDetails})
     }catch(err){

@@ -82,6 +82,8 @@ const getShipmentById = async (req, res) => {
     try {
         const { shipmentId } = req.params;
         let shipment = await getShipmentByIdService(shipmentId);
+        
+
         res.status(200).json({ shipment })
     } catch (err) {
         res.status(500).json({ error: err.message })

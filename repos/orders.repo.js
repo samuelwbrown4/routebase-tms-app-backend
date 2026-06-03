@@ -151,6 +151,9 @@ const getOrdersByDateRange = async ( id) => {
             AND shipper_locations.id = $1
             AND orders.requested_ship_date >= CURRENT_DATE
             AND orders.requested_ship_date <= CURRENT_DATE + INTERVAL '7 days'
+
+            ORDER BY
+            orders.requested_ship_date
         `,[id])
 
         return orders.rows

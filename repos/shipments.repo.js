@@ -288,6 +288,11 @@ const getShipmentById = async (id) => {
             shipments.rate,
             shipments.origin_id,
             shipments.carrier_id,
+            shipments.requested_pickup_date,
+            shipments.requested_delivery_date,
+            shipments.actual_pickup_date,
+            shipments.actual_delivery_date,
+            shipments.shipment_type,
             shipments.current_position,
             carriers.name AS carrier_name,
             carriers.scac AS carrier_scac,
@@ -370,7 +375,12 @@ const getShipmentById = async (id) => {
             suppliers.address,
             suppliers.city,
             suppliers.state,
-            suppliers.zip_code
+            suppliers.zip_code,
+            shipments.requested_pickup_date,
+            shipments.requested_delivery_date,
+            shipments.actual_pickup_date,
+            shipments.actual_delivery_date,
+            shipments.shipment_type
         `, [id])
 
     return shipment.rows[0]
@@ -525,6 +535,7 @@ const getUpcomingShipments = async (id) => {
     `, [id])
 
     return shipments.rows
-}
+};
+
 
 module.exports = { createShipment, getUndeliveredShipments, getShipmentsByCarrierId, updateShipment, getShipmentCoordsById, getShipmentById, getCarrierShipmentByShipmentNumber, getShipperShipmentByShipmentNumber, getShipmentByShipmentNumber, shipmentSearch , carrierGetSpotShipments , makeSpotOffer , acceptSpotOffer , resetBidDeadline , getUpcomingShipments}
