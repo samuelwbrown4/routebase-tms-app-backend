@@ -32,8 +32,8 @@ const getShipmentsByCarrierIdService = async (userId , status ) => {
     return shipments
 }
 
-const updateShipmentService = async (shipmentId , date , userId , eventType , routeGeometry , driveTime) => {
-    await updateShipment(shipmentId , date , userId , eventType , routeGeometry , driveTime)
+const updateShipmentService = async (shipmentId , date , userId , eventType , routeGeometry , driveTime , carrierId , rate , bidDeadline) => {
+    await updateShipment(shipmentId , date , userId , eventType , routeGeometry , driveTime , carrierId , rate , bidDeadline)
 }
 
 const getShipmentCoordsByIdService = async (id) => {

@@ -2,8 +2,8 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TYPE role AS ENUM ('admin', 'user');
 CREATE TYPE order_status AS ENUM ('unplanned', 'planned', 'in_transit', 'delivered', 'cancelled');
-CREATE TYPE shipment_status AS ENUM ('built', 'pending_carrier' , 'planned', 'routed' , 'in_transit', 'delivered', 'cancelled');
-CREATE TYPE shipment_events_type AS ENUM ('routed' , 'picked_up', 'in_transit', 'delivered' , 'comment');
+CREATE TYPE shipment_status AS ENUM ('built', 'pending_carrier' , 'planned', 'tendered' , 'routed' , 'in_transit', 'delivered', 'cancelled');
+CREATE TYPE shipment_events_type AS ENUM ( 'tender_accepted' , 'tender_rejected' , 'retendered' , 'spot_reroute' , 'routed' , 'picked_up', 'in_transit', 'delivered' , 'comment');
 CREATE TYPE shipment_type AS ENUM ('spot' , 'contract');
 CREATE TYPE bid_status  as ENUM ('active' , 'expired' , 'accepted' , 'rejected');
 CREATE TYPE contract_status AS ENUM ('pending' ,'active', 'expired' , 'rejected', 'terminated');
@@ -36,6 +36,10 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION shipment_status_validation()
 RETURNS TRIGGER AS $$
 BEGIN
+
+    IF NEW.status = 'routed' AND OLD.status != 'planned'
+    THEN RAISE EXCEPTION 'Shipment must be planned before it can be routed.';
+    END IF; 
 
     IF NEW.status = 'in_transit' AND OLD.status != 'routed' AND OLD.status != 'in_transit'
     THEN RAISE EXCEPTION 'Shipment must be routed before it is picked up.';

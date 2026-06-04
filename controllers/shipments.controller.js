@@ -48,9 +48,11 @@ const getShipmentsByCarrierId = async (req, res) => {
 const updateShipment = async (req, res) => {
     try {
         const { shipmentId } = req.params;
-        const { date, userId, eventType } = req.body
+        const { date, userId, eventType , carrierId , rate , expiry} = req.body
         let routeGeometry = undefined
         let driveTime = undefined
+
+        const bidDeadline = new Date(Date.now() + (parseInt(expiry) * (60 * 60 * 1000)))
 
         console.log('date', date);
 
@@ -70,7 +72,7 @@ const updateShipment = async (req, res) => {
 
         }
 
-        await updateShipmentService(shipmentId, date, userId, eventType, routeGeometry, driveTime)
+        await updateShipmentService(shipmentId, date, userId, eventType, routeGeometry, driveTime , carrierId , rate , bidDeadline)
         res.status(200).json({ message: 'Shipment updated successfully' })
 
     } catch (err) {

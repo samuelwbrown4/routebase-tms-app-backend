@@ -79,6 +79,7 @@ const getShipmentsByShipperLocation = async (id , status ) => {
             shipments.equipment_type_id,
             shipments.status,
             shipments.total_weight,
+            shipments.distance,
             shipments.requested_pickup_date,
             shipments.requested_delivery_date,
             shipments.actual_pickup_date,
@@ -196,7 +197,8 @@ const getSpotLoadsByShipperLocation = async (id , status) => {
             suppliers.address,
             suppliers.city,
             suppliers.state,
-            suppliers.zip_code
+            suppliers.zip_code,
+            shipments.distance
 
         ` , [id , status]);
 

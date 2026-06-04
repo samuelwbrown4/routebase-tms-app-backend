@@ -79,7 +79,8 @@ const getShipmentsByCarrierId = async (id, status) => {
             shipments.requested_delivery_date,
             shipments.actual_pickup_date,
             shipments.actual_delivery_date,
-            shipments.near_destination
+            shipments.near_destination,
+            shipments.rate
 
             FROM shipments 
 
@@ -194,17 +195,43 @@ const carrierGetSpotShipments = async (status) => {
     return response.rows
 }
 
-const updateShipment = async (shipmentId, date, userId, eventType, routeGeometry, driveTime) => {
+const updateShipment = async (shipmentId, date, userId, eventType, routeGeometry, driveTime , carrierId , rate , bidDeadline) => {
     try {
         await pool.query('BEGIN')
 
         await pool.query(`
             UPDATE shipments
             SET status = CASE
+                WHEN $1 = 'tender_accepted' THEN 'planned'
+                WHEN $1 = 'tender_rejected' THEN 'built'
                 WHEN $1 = 'picked_up' THEN 'in_transit'
                 WHEN $1 = 'delivered' THEN 'delivered'
                 WHEN $1 = 'routed' THEN 'routed'
+                WHEN $1 = 'retendered' THEN 'tendered'
+                WHEN $1 = 'spot_reroute' THEN 'pending_carrier'
                 ELSE status
+            END,
+            carrier_id = CASE
+                WHEN $1 = 'tender_rejected' THEN NULL
+                WHEN $1 = 'spot_reroute' THEN NULL
+                WHEN $1 = 'retendered' THEN $6
+                ELSE carrier_id
+            END,
+            rate = CASE
+                WHEN $1 = 'tender_rejected' THEN NULL
+                WHEN $1 = 'spot_reroute' THEN NULL
+                WHEN $1 = 'retendered' THEN $7
+                ELSE rate
+            END,
+            shipment_type = CASE
+                WHEN $1 = 'spot_reroute'
+                THEN 'spot'
+                ELSE shipment_type
+            END,
+            bid_deadline = CASE
+                WHEN $1 = 'spot_reroute'
+                THEN $8
+                ELSE bid_deadline
             END,
             actual_pickup_date = CASE
                 WHEN $1 = 'picked_up' THEN $2
@@ -223,7 +250,7 @@ const updateShipment = async (shipmentId, date, userId, eventType, routeGeometry
                 ELSE route_time_seconds
             END
             WHERE shipments.id = $3 
-            ` , [eventType, date, shipmentId, routeGeometry, driveTime])
+            ` , [eventType, date, shipmentId, routeGeometry, driveTime , carrierId , rate , bidDeadline])
 
         await pool.query(`
             UPDATE orders
