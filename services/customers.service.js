@@ -6,10 +6,10 @@ const getCustomersByCompanyIdService = async (id) => {
     return companies;
 }
 
-const createCustomerService = async (companyId , name , address , city , state , zip , country) => {
-    let newCustomer = await createCustomer(companyId , name , address , city , state , zip , country)
+const createCustomerService = async (payload) => {
+    let newCustomer = await createCustomer(payload)
 
-    return newCustomer.rows[0]
+    return newCustomer
 }
 
 module.exports = {getCustomersByCompanyIdService , createCustomerService}

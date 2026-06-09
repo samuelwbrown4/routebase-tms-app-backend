@@ -30,14 +30,14 @@ const getCustomerLocationsByCompanyId = async (id) => {
         return customerLocations.rows
 }
 
-const createCustomerLocation = async (customerId , name , address , city , state , zip , country , lat , long) => {
+const createCustomerLocation = async (payload) => {
     let newCustomerLocation = await pool.query(`
         INSERT INTO customer_locations
         (customer_id , name , address , city , state , zip_code , country , latitude , longitude)
         VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8 , $9)
-        RETURNING *` , [customerId , name , address , city , state , zip , country , lat , long])
+        RETURNING *` , [payload.tmsCustomerId , payload.locName , payload.locAddress , payload.locCity , payload.locState , payload.locZip , payload.country , payload.lat , payload.long])
 
-        return newCustomerLocation.rows[0]
+        return newCustomerLocation.rows[0].id
 }
 
 module.exports = {getCustomerLocationsByCompanyId , createCustomerLocation}

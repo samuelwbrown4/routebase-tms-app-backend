@@ -191,7 +191,7 @@ const createOrder = async (payload) => {
         VALUES ($1 , $2 , $3 , $4 , $5 , $6 , $7 , $8::jsonb , $9 , $10 , $11  , $12)
 
         RETURNING *
-        `, [payload.customerId , payload.orderOriginId , payload.orderDestId , payload.orderNumber , payload.custPoNumber , payload.shipDate , payload.orderStatus , JSON.stringify(payload.lineItems) , payload.orderWeight , payload.directionCategory , payload.companyId ,  payload.supplierId]);
+        `, [payload.tmsCustomerId , payload.orderOriginId , payload.tmsOrderDestId , payload.orderNumber , payload.custPoNumber , payload.shipDate , payload.orderStatus , JSON.stringify(payload.lineItems) , payload.orderWeight , payload.directionCategory , payload.companyId ,  payload.supplierId]);
 
          console.log('order inserted:', order.rows[0])
 

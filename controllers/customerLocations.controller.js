@@ -16,20 +16,19 @@ const getCustomerLocationsByCompanyId = async (req , res) => {
 
 const createCustomerLocation = async (req , res) => {
     try{
-        const {id , role , client} = req.user
-        let {existingCustomer} = req.query
-        let {customerId , locName , locAddress , locCity , locState , locZip , locCountry , custName , custAddress , custCity , custState , custZip , custCountry} = req.body;
+        console.log('cust loc controller hit')
+        const companyId = req.companyId
+        let {payload} = req.body;
+        
         let long = undefined
         let lat = undefined
-        
-        if(existingCustomer === false){
-            let companyId = await getCompanyIdService(id)
-            let customer = await createCustomerService(companyId , custName , custAddress , custCity , custState , custZip , custCountry)
-            customerId = customer.id
-        }
+        payload.companyId = companyId
+
+        console.log('payload' , payload)
+
 
         try{
-            const address = `${locAddress}''${locCity}''${locState}''${locZip}`
+            const address = `${payload.locAddress}''${payload.locCity}''${payload.locState}''${payload.locZip}`
             const encodedAddress = encodeURIComponent(address)
             let response = await fetch(`${process.env.FORWARD_GEOCODE_API_URL_PREFIX}${encodedAddress}${process.env.FORWARD_GEOCODE_API_URL_SUFFIX}`, {
                 headers: {
@@ -39,14 +38,14 @@ const createCustomerLocation = async (req , res) => {
 
             let result = await response.json()
 
-            long = result.results[0].lon
-            lat = result.results[0].lat
+            payload.long = result.results[0].lon
+            payload.lat = result.results[0].lat
 
         }catch(err){
-            res.status(500).json({error: err.message})
+            return res.status(500).json({error: err.message})
         }
 
-        let newCustomerLocation = await createCustomerLocationService(customerId , locName , locAddress , locCity , locState , locZip , locCountry , lat , long)
+        let newCustomerLocation = await createCustomerLocationService(payload)
 
         res.status(201).json({newCustomerLocation})
         

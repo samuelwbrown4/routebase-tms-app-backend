@@ -1,122 +1,129 @@
-# Routebase — Backend
+# Routebase TMS
 
-REST API for Routebase, a full-stack Transportation Management System built from scratch — informed by 5+ years of professional experience configuring and integrating enterprise TMS platforms.
+**Status:** Deployed | **Live:** [routebase.cloud](https://routebase.cloud)
 
-🚧 **Status:** In active development
-
-**Frontend repo:** [routebase-tms-app-frontend](https://github.com/samuelwbrown4/routebase-tms-app-frontend)
+> A full-stack Transportation Management System built from scratch with architectural and design decisions based on 5+ years of professional experience configuring and integrating enterprise TMS platforms.
 
 ---
 
-## Architecture
+## What It Does
 
-The backend follows a layered architecture with strict separation of concerns:
+Routebase is a Transportation Management System that manages the full order-to-shipment lifecycle through a dual portal platform for both shippers and carriers. It handles everything from order creation and carrier assignment to live shipment tracking and delivery confirmation.
 
-```
-Route → Controller → Service → Repository → Database
-```
-
-| Layer | Responsibility |
-|---|---|
-| **Routes** | Define endpoints and HTTP methods |
-| **Controllers** | Handle request/response cycle, input validation |
-| **Services** | Business logic and operation orchestration |
-| **Repos** | Raw database queries — nothing else |
-| **DB** | PostgreSQL connection pool |
-| **Middleware** | JWT authentication and route protection |
-| **Email** | Nodemailer initialization and email service |
-
-This separation means business logic in services is completely decoupled from the database layer. Swapping the data store would only require changes to the repos layer.
+Proven with its companion ERP app, [purepath-erp.com](https://purepath-erp.com), Routebase integrates with enterprise software to execute bidirectional tasks such as order ingestion from the ERP to Routebase, and transmitting status updates from Routebase back to the ERP.
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Runtime | Node.js |
-| Framework | Express.js |
-| Database | PostgreSQL |
-| Auth | JWT |
-| Email | Nodemailer |
+| Layer | Routebase TMS | PurePath ERP |
+|---|---|---|
+| Frontend | React, Vite, Mantine, Leaflet | React, Vite, Mantine |
+| Backend | Node.js, Express | Node.js, Express |
+| Database | PostgreSQL (AWS RDS) | PostgreSQL (Supabase) |
+| Auth | JWT (users), API Keys (system) | JWT (users), API Keys (system) |
+| Hosting | AWS EC2, Amplify, ALB, Route 53 | AWS EC2, Amplify, ALB, Route 53 |
+| Other | Geoapify, Puppeteer, node-cron, Nodemailer | Supabase JS |
 
 ---
 
-## Database Design
+## Architecture
 
-13 normalized tables built around the core entities of a real TMS:
+### Deployment
+- **Routebase TMS** — EC2 backend, Amplify frontend, RDS (PostgreSQL), ALB, Route 53
+- **PurePath ERP** — EC2 backend, Amplify frontend, Supabase (PostgreSQL), ALB, Route 53
 
-```
-companies / carriers / customers / suppliers
-    ↓
-shipper_locations / customer_locations / supplier_locations
-    ↓
-products / equipment_types
-    ↓
-orders / order_line_items
-    ↓
-shipments / shipment_orders (junction) / shipment_events
-```
+### Database
+- **UUID Primary Keys** — Unique keys to prevent the risk of sequential record exposure
+- **Custom ENUM Types** — Enforces valid state transitions at the database level, preventing unexpected state updates from the application level
+- **Multi-tenant Architecture** — `company_id` field included on core tables to support multiple shippers on a single instance
+- **Junction Tables** — `shipment_orders` represents a one-to-many relationship; by constraining `order_id` to be UNIQUE, orders cannot be assigned to multiple shipments
+- **Append-Only Events Log** — `shipment_events` table captures each status update with a timestamp to provide a complete shipment audit trail
+- **Location Type Separation** — Shipper, customer, and supplier location types are contained in their own tables for flexibility when determining origin and destination
+- **JSONB Route Geometry** — Route geometry is stored directly on shipment records rather than a separate geometry table
+- **Database-Level Validation** — Triggers validate order/shipment creation, status changes, and spot bid validation at the database level
 
-**Key design decisions:**
+### Backend
+- Layered Controller/Service/Repository pattern
+- JWT auth for users, API key auth for system-to-system integration
+- Cron jobs for live truck position simulation and TMS-to-ERP order status sync
+- BOL generation via Puppeteer
+- Forward geocoding via Geoapify on location creation to get and store coordinates
 
-- **UUID primary keys** via `pgcrypto` — avoids sequential ID exposure
-- **Custom ENUM types** for status workflows — enforces valid state transitions at the database level, not just the application layer
-- **Multi-tenant architecture** — `company_id` threads through companies, locations, and products
-- **Junction table** (`shipment_orders`) — models the many-to-many relationship between shipments and orders, with `order_id` constrained as UNIQUE to prevent double-assignment
-- **Shipment event log** — append-only audit trail with optional user attribution
-- **Separate location types** — shipper, customer, and supplier locations in distinct tables, reflecting how origin/destination logic differs by party type in a real TMS
+### Frontend
+- React + Vite + Mantine
+- Leaflet maps for live shipment tracking
+- Role-based portal rendering (shipper vs carrier)
+
+### Integration
+- System-to-system integration handled by API keys and API middleware
+- TMS pushes status updates back to ERP via cron job, only when status has changed since last sync
+- **Order Creation** — ERP creates orders and posts them to the TMS ingestion endpoint, which normalizes and stores order details
+- **TMS-First Creation Flow** — Customers and locations are created in the TMS first; IDs are returned and stored on the ERP record, ensuring referential integrity across both systems and mirroring patterns used in real enterprise middleware integrations
 
 ---
 
-## Current Functionality
+## Features
 
-- JWT authentication with role-based access (admin / user)
-- Open orders loading and management
-- Order consolidation into shipments with carrier and equipment type assignment
-- Carrier rate tables with distance band pricing
-- Carrier-shipper relationship management and contract proposals
-- Shipment status workflow tracking
-- Transactional email notifications via Nodemailer
+- Dual portals (shipper & carrier)
+- Full order-to-shipment lifecycle
+- Bidirectional freight planning (inbound & outbound)
+- Rate calculation with distance bands and fuel surcharges
+- Freight contract management
+- BOL generation via Puppeteer
+- Live shipment tracking with Geoapify supplying route geometry and Leaflet displaying polyline
+- Truck position simulation via cron job
+- Messaging system between shippers and carriers
+- Forward geocoding on location creation
+- Role-based access control
 
 ---
 
 ## Running Locally
 
 ### Prerequisites
-- Node.js v18+
-- PostgreSQL instance
+- Node.js
+- NPM
+- Geoapify API key
+- Supabase project (for ERP database)
+- Local PostgreSQL instance (for TMS database)
+- Both backends must be configured with each other's API URLs and keys in their `.env` files — the systems communicate bidirectionally and sync jobs will error without this
 
-### Setup
+### PurePath ERP Frontend
 ```bash
-git clone https://github.com/samuelwbrown4/routebase-tms-app-backend
-cd routebase-tms-app-backend
+git clone <repo>
+cd purepath-erp-frontend
 npm install
-cp .env.example .env
+cp .env.example .env  # set VITE_API_URL
+npm run dev
 ```
 
-Update `.env`:
-```
-DATABASE_URL=postgresql://user:password@host:5432/routebase
-JWT_SECRET=your_jwt_secret
-PORT=3000
-EMAIL_HOST=smtp.your-provider.com
-EMAIL_USER=your_email
-EMAIL_PASS=your_password
-```
-
+### PurePath ERP Backend
 ```bash
-psql -d your_db_name -f schema.sql
-npm start
+git clone <repo>
+cd purepath-erp-backend
+npm install
+cp .env.example .env  # set DB credentials, TMS_API_URL, TMS_API_KEY, Supabase credentials
+node index.js
 ```
 
----
+### Routebase TMS Frontend
+```bash
+git clone <repo>
+cd routebase-frontend
+npm install
+cp .env.example .env  # set VITE_API_URL
+npm run dev
+```
 
-## Background
-
-This project came out of direct experience managing logistics operations and implementing enterprise TMS platforms (e2open, SAP WM) across 44 distribution sites. The schema, feature set, and API design reflect real operational requirements — not a tutorial interpretation of what a TMS might look like.
-
-The carrier rate table and contract proposal features specifically address a gap I observed professionally — too much carrier-shipper communication happening over email and phone instead of being managed within the platform itself.
+### Routebase TMS Backend
+```bash
+git clone <repo>
+cd routebase-backend
+npm install
+cp .env.example .env  # set DB_URL, JWT_SECRET, PORT, ERP_API_URL, ERP_API_KEY, Geoapify keys
+node index.js
+```
 
 ---
 

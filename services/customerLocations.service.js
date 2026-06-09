@@ -6,8 +6,8 @@ const getCustomerLocationsByCompanyIdService = async (id) => {
     return customerLocations;
 }
 
-const createCustomerLocationService = async (customerId , name , address , city , state , zip , country , lat , long) => {
-    const newCustomerLocation = await createCustomerLocation(customerId , name , address , city , state , zip , country , lat , long)
+const createCustomerLocationService = async (payload) => {
+    const newCustomerLocation = await createCustomerLocation(payload)
 
     return newCustomerLocation
 }
