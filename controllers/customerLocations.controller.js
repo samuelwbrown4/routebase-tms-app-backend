@@ -37,14 +37,15 @@ const createCustomerLocation = async (req , res) => {
             });
 
             let result = await response.json()
-
+            
             payload.long = result.results[0].lon
             payload.lat = result.results[0].lat
-
+            
         }catch(err){
             return res.status(500).json({error: err.message})
         }
-
+        if(!result.results[0].lon || !result.results[0].lat) return res.status(500).json({message: 'Invalid address'})
+        
         let newCustomerLocation = await createCustomerLocationService(payload)
 
         res.status(201).json({newCustomerLocation})
