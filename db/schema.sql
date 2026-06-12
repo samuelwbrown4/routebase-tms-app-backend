@@ -49,7 +49,7 @@ BEGIN
     THEN RAISE EXCEPTION 'Shipment must be picked up before it can be delivered.';
     END IF;
 
-    IF NEW.actual_delivery_date < OLD.transit_start_time
+    IF NEW.actual_delivery_date < OLD.actual_pickup_date
     THEN RAISE EXCEPTION 'Delivery date can not be before pickup date';
     END IF;
     RETURN NEW;
